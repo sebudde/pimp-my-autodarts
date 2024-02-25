@@ -99,7 +99,7 @@
 
         let callerName = (await GM.getValue('callerName')) || '0';
         let triplesound = (await GM.getValue('triplesound')) || '0';
-        let boosound = (await GM.getValue('boosound')) || 'OFF';
+        let boosound = (await GM.getValue('boosound')) || false;
         let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
 
         if (CONFIG.match.caller === 1) {
@@ -108,6 +108,14 @@
                     eval(event.target.id + ' = event.target.value');
                     await GM.setValue(event.target.id, event.target.value);
                 })();
+            };
+
+            const setActiveAttr = (el, isActive) => {
+                if (isActive) {
+                    el.setAttribute('data-active', '');
+                } else {
+                    el.removeAttribute('data-active');
+                }
             };
 
             const callerArr = [
@@ -147,13 +155,6 @@
                 }, {
                     value: '2',
                     name: 'Löwen'
-                }];
-
-            const booArr = [
-                {
-                    value: 'OFF'
-                }, {
-                    value: 'ON'
                 }];
 
             const nextLegSecArr = [
@@ -203,22 +204,22 @@
                 tripleSoundSelect.appendChild(optionEl);
             });
 
-            const booSelect = document.createElement('select');
-            booSelect.id = 'boosound';
-            booSelect.classList.add('css-1xbroe7');
-            booSelect.style.padding = '0 5px';
-            booSelect.onchange = onSelectChange;
+            const booBtn = document.createElement('button');
+            booBtn.id = 'boosound';
+            booBtn.innerText = 'BOO';
+            booBtn.classList.add('css-1xbmrf2');
+            booBtn.style.height = 'var(--chakra-sizes-8)';
+            booBtn.style.padding = '0 var(--chakra-space-4)';
+            booBtn.style.margin = '0';
+            setActiveAttr(booBtn, boosound);
+            configContainer.appendChild(booBtn);
 
-            configContainer.appendChild(booSelect);
-
-            booArr.forEach((boo) => {
-                const optionEl = document.createElement('option');
-                optionEl.value = boo.value;
-                optionEl.text = `BOO ${boo.value}`;
-                optionEl.style.backgroundColor = '#353d47';
-                if (boosound === boo.value) optionEl.setAttribute('selected', 'selected');
-                booSelect.appendChild(optionEl);
-            });
+            booBtn.addEventListener('click', async (event) => {
+                const isActive = event.target.hasAttribute('data-active');
+                setActiveAttr(booBtn, !isActive);
+                boosound = !isActive;
+                await GM.setValue('boosound', !isActive);
+            }, false);
 
             const nextLegSecSelect = document.createElement('select');
             nextLegSecSelect.id = 'nextLegAfterSec';
@@ -231,7 +232,7 @@
             nextLegSecArr.forEach((sec) => {
                 const optionEl = document.createElement('option');
                 optionEl.value = sec.value;
-                optionEl.text = `NextLeg ${sec.value}`;
+                optionEl.text = `Next Leg ${sec.value}s`;
                 optionEl.style.backgroundColor = '#353d47';
                 if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
                 nextLegSecSelect.appendChild(optionEl);
@@ -239,9 +240,11 @@
 
             const hideHeaderBtn = document.createElement('button');
             hideHeaderBtn.id = 'hideHeader';
-            hideHeaderBtn.innerText = 'H';
+            hideHeaderBtn.innerText = 'Header';
             hideHeaderBtn.classList.add('css-1xbmrf2');
             hideHeaderBtn.style.height = 'var(--chakra-sizes-8)';
+            hideHeaderBtn.style.padding = '0 var(--chakra-space-4)';
+            hideHeaderBtn.style.margin = 0;
 
             let hideHeaderGM = await GM.getValue('hideHeader');
 
@@ -252,21 +255,14 @@
                 headerEl.style.display = 'none';
                 mainContainerEl.style.height = '100vh';
             }
-            if (hideHeaderGM === true) {
-                hideHeaderBtn.removeAttribute('data-active');
-            } else {
-                hideHeaderBtn.setAttribute('data-active', '');
-            }
+
+            setActiveAttr(hideHeaderBtn, !hideHeaderGM);
 
             configContainer.appendChild(hideHeaderBtn);
 
             hideHeaderBtn.addEventListener('click', async (event) => {
                 const isActive = event.target.hasAttribute('data-active');
-                if (isActive === true) {
-                    hideHeaderBtn.removeAttribute('data-active');
-                } else {
-                    hideHeaderBtn.setAttribute('data-active', '');
-                }
+                setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
                 mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
 
@@ -288,7 +284,6 @@
                 startBtnContainer.style.top = '0';
                 startBtnContainer.style.left = '0';
                 startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-
                 startBtnContainer.style.display = 'flex';
                 startBtnContainer.style.justifyContent = 'center';
                 startBtnContainer.style.alignItems = 'center';
@@ -373,7 +368,7 @@
                         playSound1(callerServerUrl + '/' + 'triple' + '/' + 'bullseye' + fileExt);
                     }
                 } else if (curThrowPointsBed === 'Outside') {
-                    if (boosound === 'ON') {
+                    if (boosound === true) {
                         const missPrefix = ['1st', '2nd', '3rd'];
                         const randomMissPrefix = missPrefix[Math.floor(Math.random() * missPrefix.length)];
                         playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'miss_' + randomMissPrefix + '_dart' + fileExt);
