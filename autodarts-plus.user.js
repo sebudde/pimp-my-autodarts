@@ -321,12 +321,12 @@
         }
 
         function playSound1(fileName) {
-            console.log('fileName1', fileName);
+            // console.log('fileName1', fileName);
             soundEffect1.src = fileName;
         }
 
         function playSound2(fileName) {
-            console.log('fileName2', fileName);
+            // console.log('fileName2', fileName);
             soundEffect2.src = fileName;
         }
 
@@ -334,7 +334,7 @@
             const callerServerUrl = 'https://autodarts.x10.mx';
 
             const fileExt = '.mp3';
-            const turnPoints = counterContainer.firstChild.innerText;
+            const turnPoints = counterContainer.firstChild.innerText.trim();
             const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7')].map((el) => el.innerText);
 
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
