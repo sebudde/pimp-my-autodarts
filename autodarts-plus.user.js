@@ -14,7 +14,7 @@
 // @grant        GM.setValue
 // ==/UserScript==
 
-;(function() {
+(function() {
     'use strict';
 
     const CONFIG = {
@@ -80,13 +80,12 @@
         document.querySelector('.css-k008qs').after(configRow);
 
         if (CONFIG.match.inactiveSmall === 1) {
-            ;[...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.style.fontSize = '3em'));
+            [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.style.fontSize = '3em'));
         }
 
         // PR font-size larger
-        ;[...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
-        [
-            ...document.querySelectorAll('.css-1memit')].forEach((el) => (el.style.marginTop = '-4px'));
+        [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
+        [...document.querySelectorAll('.css-1memit')].forEach((el) => (el.style.marginTop = '-4px'));
         [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '148px'));
 
         const matchVariant = document.querySelector('.css-1xbroe7').innerText;
@@ -109,7 +108,7 @@
 
         if (CONFIG.match.caller === 1) {
             const onSelectChange = (event) => {
-                ;(async () => {
+                (async () => {
                     eval(event.target.id + ' = event.target.value');
                     await GM.setValue(event.target.id, event.target.value);
                 })();
@@ -335,8 +334,7 @@
 
             const fileExt = '.mp3';
             const turnPoints = counterContainer.firstChild.innerText;
-            const throwPointsArr = [
-                ...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7')].map((el) => el.innerText);
+            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7')].map((el) => el.innerText);
 
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
@@ -407,8 +405,7 @@
                     const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
 
                     setTimeout(() => {
-                        const buttons = [
-                            ...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
+                        const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
                         buttons.forEach((button) => {
                             // --- Leg finished ---
                             if (button.innerText === 'Next Leg') {
@@ -457,8 +454,7 @@
                     }
 
                     if (CONFIG.match.showNextLegAfter) {
-                        const buttons = [
-                            ...document.querySelectorAll('button.css-1vfwxw0')];
+                        const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
                         buttons.forEach((button) => {
                             if (button.innerText === 'Next Leg') {
                                 if (!parseInt(nextLegAfterSec)) return;
