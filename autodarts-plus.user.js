@@ -79,10 +79,6 @@
 
         document.querySelector('.css-k008qs').after(configRow);
 
-        if (CONFIG.match.inactiveSmall === 1) {
-            [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.style.fontSize = '3em'));
-        }
-
         // PR font-size larger
         [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
         [...document.querySelectorAll('.css-1memit')].forEach((el) => (el.style.marginTop = '-4px'));
@@ -427,6 +423,10 @@
 
         const onCounterChange = async () => {
             if (CONFIG.match.caller === 1) caller();
+
+            if (CONFIG.match.inactiveSmall === 1) {
+                [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.style.fontSize = '3em'));
+            }
 
             if (CONFIG.match.showThrowSumAtLegFinish || CONFIG.match.showNextLegAfter) {
                 const winnerContainer = document.querySelector('.css-e9w8hh');
