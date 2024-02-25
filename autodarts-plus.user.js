@@ -63,8 +63,10 @@
 
         // iOS fix
         // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-        const soundEffect = new Audio();
-        soundEffect.autoplay = true;
+        const soundEffect1 = new Audio();
+        soundEffect1.autoplay = true;
+        const soundEffect2 = new Audio();
+        soundEffect2.autoplay = true;
 
         const configRow = document.createElement('div');
         configRow.classList.add('css-k008qs');
@@ -309,8 +311,8 @@
                 startBtnContainer.appendChild(startBtn);
 
                 startBtn.addEventListener('click', async (event) => {
-                    // soundEffect.src = 'https://autodarts.x10.mx' + '/' + 'chase_the_sun/chase_the_sun.mp3';
-                    soundEffect.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                    // soundEffect1.src = 'https://autodarts.x10.mx' + '/' + 'chase_the_sun/chase_the_sun.mp3';
+                    soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
                     startBtnContainer.remove();
                 }, false);
 
@@ -318,9 +320,14 @@
             }
         }
 
-        function playSound(fileName) {
-            // console.log('fileName', fileName);
-            soundEffect.src = fileName;
+        function playSound1(fileName) {
+            console.log('fileName1', fileName);
+            soundEffect1.src = fileName;
+        }
+
+        function playSound2(fileName) {
+            console.log('fileName2', fileName);
+            soundEffect2.src = fileName;
         }
 
         const caller = async () => {
@@ -362,37 +369,37 @@
             // console.log(curThrowPointsBed)
 
             if (turnPoints === 'BUST') {
-                playSound(callerServerUrl + '/' + callerName + '/' + '0' + fileExt);
+                playSound1(callerServerUrl + '/' + callerName + '/' + '0' + fileExt);
             } else {
                 if (curThrowPointsName === 'BULL') {
                     if (triplesound === '1') {
-                        playSound(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
+                        playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
                     }
                     if (triplesound === '2') {
-                        playSound(callerServerUrl + '/' + 'triple' + '/' + 'bullseye' + fileExt);
+                        playSound1(callerServerUrl + '/' + 'triple' + '/' + 'bullseye' + fileExt);
                     }
                 } else if (curThrowPointsBed === 'Outside') {
                     if (boosound === 'ON') {
                         const missPrefix = ['1st', '2nd', '3rd'];
                         const randomMissPrefix = missPrefix[Math.floor(Math.random() * missPrefix.length)];
-                        playSound(callerServerUrl + '/' + 'russ_bray' + '/' + 'miss_' + randomMissPrefix + '_dart' + fileExt);
+                        playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'miss_' + randomMissPrefix + '_dart' + fileExt);
                     }
                 } else {
                     if (curThrowPointsMultiplier === 3) {
                         if (triplesound === '1') {
-                            playSound(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
+                            playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
                         }
                         if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                            playSound(callerServerUrl + '/' + 'russ_bray' + '/' + 'SoundHwTriple' + curThrowPointsNumber + '_old' + '.wav');
+                            playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'SoundHwTriple' + curThrowPointsNumber + '_old' + '.wav');
                         }
                     }
                 }
 
                 if (throwPointsArr.length === 3 && callerName.length) {
                     if (callerName.startsWith('google')) {
-                        playSound('https://autodarts.de.cool/mp3_helper.php?language=' + callerName.substring(7, 9) + '&text=' + turnPoints);
+                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerName.substring(7, 9) + '&text=' + turnPoints);
                     } else {
-                        playSound(callerServerUrl + '/' + callerName + '/' + turnPoints + fileExt);
+                        playSound1(callerServerUrl + '/' + callerName + '/' + turnPoints + fileExt);
                     }
                 }
 
@@ -405,13 +412,14 @@
                         buttons.forEach((button) => {
                             // --- Leg finished ---
                             if (button.innerText === 'Next Leg') {
-                                playSound(callerServerUrl + '/' + callerName + '/' + 'gameshot.mp3');
+                                playSound1(callerServerUrl + '/' + callerName + '/' + 'gameshot.mp3');
                             }
                             // --- Match finished ---
                             if (button.innerText === 'Finish') {
-                                playSound(callerServerUrl + '/' + callerName + '/' + 'gameshot and the match.mp3');
+                                console.log('finish');
+                                playSound1(callerServerUrl + '/' + callerName + '/' + 'gameshot and the match.mp3');
                                 setTimeout(() => {
-                                    playSound(callerServerUrl + '/' + 'chase_the_sun/chase_the_sun.mp3');
+                                    playSound2(callerServerUrl + '/' + 'chase_the_sun/chase_the_sun.mp3');
                                 }, 1000);
                             }
                         });
