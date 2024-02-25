@@ -79,6 +79,11 @@
 
         document.querySelector('.css-k008qs').after(configRow);
 
+        // iOS Fix - has to be set on start, onCounterChange is not working at the beginning
+        if (CONFIG.match.inactiveSmall === 1) {
+            [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.style.fontSize = '3em'));
+        }
+
         // PR font-size larger
         [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
         [...document.querySelectorAll('.css-1memit')].forEach((el) => (el.style.marginTop = '-4px'));
@@ -292,7 +297,7 @@
 
                 const startBtn = document.createElement('button');
                 startBtn.id = 'startBtn';
-                startBtn.innerText = 'START';
+                startBtn.innerText = 'START1';
                 startBtn.classList.add('css-1xbmrf2');
                 startBtn.style.background = '#ffffff';
                 startBtn.style.color = '#646464';
