@@ -31,7 +31,7 @@
     const apiUrl = 'https://api.autodarts.io/as/v0';
 
     const readyClasses = {
-        play: 'css-150fgpe',
+        play: 'css-1lua7td',
         lobbies: 'css-1q0rlnk',
         table: 'css-p3eaf1', // matches & boards
         match: 'css-ul22ge',
