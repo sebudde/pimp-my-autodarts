@@ -33,11 +33,12 @@
     const readyClasses = {
         play: 'css-150fgpe',
         lobbies: 'css-1q0rlnk',
-        matches: 'css-5605sr',
+        table: 'css-p3eaf1', // matches & boards
         match: 'css-ul22ge',
-        match1: 'css-1lua7td',
-        boards: 'css-p3eaf1'
+        matchHistory: 'css-10z204m'
     };
+
+    let firstLoad = true;
 
     const observeDOM = (function() {
         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
@@ -62,7 +63,21 @@
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
-    //////////////// CSS classes end ////////////////////
+    //////////////// add menu and page  ////////////////////
+
+    const onDOMready = () => {
+        if (firstLoad) {
+            firstLoad = false;
+            // init
+        }
+        console.log('DOM ready:');
+    };
+
+    ////////////////  end ////////////////////
+
+    const handlePlay = () => {
+        console.log('play ready');
+    };
 
     const handleMatches = () => {
         console.log('matches ready');
@@ -489,6 +504,10 @@
         console.log('boards ready');
     };
 
+    const handleMatchHistory = () => {
+        console.log('matchHistory ready');
+    };
+
     const readyClassesValues = Object.values(readyClasses);
 
     observeDOM(document.getElementById('root'), function(mutationrecords) {
@@ -497,17 +516,27 @@
                 const elemetClassList = [...record.addedNodes[0].classList];
                 return elemetClassList.some((className) => {
                     if (className.startsWith('css-')) {
+                        if (!readyClassesValues.includes(className)) return false;
+                        // console.log('className', className);
                         const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
                         if (key) {
+                            onDOMready();
                             switch (key) {
-                                case 'matches':
-                                    handleMatches();
+                                case 'play':
+                                    handlePlay();
+                                    break;
+                                case 'table':
+                                    document.querySelector('.' + className).children[0].classList.contains('css-12pccnb') && handleBoards();
+                                    document.querySelector('.' + className).children[0].classList.contains('css-5605sr') && handleMatches();
                                     break;
                                 case 'match':
                                     handleMatch();
                                     break;
                                 case 'boards':
                                     handleBoards();
+                                    break;
+                                case 'matchHistory':
+                                    handleMatchHistory();
                                     break;
                             }
                             return true;
