@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.0.3
+// @version      0.0.4
 // @description  Userscript for Autodarts
 // @author       sebudde / benebelter
 // @match        https://play.autodarts.io/*
@@ -14,7 +14,7 @@
 // @grant        GM.setValue
 // ==/UserScript==
 
-(function() {
+(async function() {
     'use strict';
 
     const CONFIG = {
@@ -65,18 +65,129 @@
 
     //////////////// add menu and page  ////////////////////
 
+    const setCallerData = async (name, value) => {
+        const gmData = await GM.getValue('adp');
+        const gmCallerData = gmData?.callerData || {};
+
+        const data = name.split('-');
+
+        const gmCallerValue = gmCallerData[data[0]] || {};
+        const newCallerValue = {[data[1]]: value};
+
+        const callerData = {
+            ...gmCallerData,
+            [data[0]]: {...gmCallerValue, ...newCallerValue}
+        };
+
+        await GM.setValue('adp', {
+            callerData: callerData
+        });
+    };
+
+    let configPathName = '/config';
+    const pageContainer = document.createElement('div');
+    pageContainer.classList.add('css-gmuwbf');
+    const configContainer = document.createElement('div');
+    configContainer.classList.add('css-10z204m');
+    pageContainer.appendChild(configContainer);
+    configContainer.innerHTML = `
+                    <h2 style="font-size: 1.5em; font-weight: 700; align-self: flex-start;">Config</h2>
+                    <h3 style="font-size: 1.2em; font-weight: 700; align-self: flex-start;">Caller</h3>
+                    `;
+
+    const adpData = await GM.getValue('adp');
+
+    for (let callerCount = 1; callerCount <= 5; callerCount++) {
+        const callerContainer = document.createElement('div');
+        callerContainer.classList.add('css-1p4eqnd');
+        callerContainer.style.gap = '2rem';
+        const callerData = adpData?.callerData || {};
+        const callerServer = callerData[`caller${callerCount}`]?.server || '';
+        const callerName = callerData[`caller${callerCount}`]?.name || '';
+        const callerFolder = callerData[`caller${callerCount}`]?.folder || '';
+
+        callerContainer.innerHTML = `
+                        <div class="css-1igwmid" style="margin-right: 2em">
+                            <b>Caller ${callerCount}</b>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div>Server</div>
+                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--server css-1ndqqtl" name="caller${callerCount}-server" value="${callerServer}"></div></div>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div>Name</div>
+                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--name css-1ndqqtl" name="caller${callerCount}-name" value="${callerName}"></div></div>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div>Folder</div>
+                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-folder" value="${callerFolder}"></div></div>
+                        </div>`;
+        configContainer.appendChild(callerContainer);
+    }
+    ;
+
+    const input = configContainer.querySelectorAll('input');
+    [...input].forEach((el) => (el.addEventListener('blur', (e) => {
+        setCallerData(e.target.name, e.target.value);
+    })));
+
     const onDOMready = () => {
         if (firstLoad) {
             firstLoad = false;
-            // init
+
+            // add page
+            document.getElementById('root').appendChild(pageContainer);
+
+            // const serverData = document.createElement('div');
+            // .style.display = 'none';
+            // document.getElementsByTagName('head')[0].appendChild(adp_style);
+
+            // add menu
+            const menuBtn = document.createElement('a');
+            menuBtn.classList.add('css-1nlwyv4');
+            menuBtn.classList.add('adp_menu-btn');
+            menuBtn.innerText = 'Config';
+            menuBtn.style.cursor = 'pointer';
+            const menuContainer = document.querySelector('.css-1igwmid');
+            menuContainer.appendChild(menuBtn);
+
+            [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
+                document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
+                pageContainer.style.display = 'none';
+                if (event.target.classList.contains('adp_menu-btn')) {
+                    // switch to page "Matches History" because we need its CSS
+                    menuContainer.querySelector('a:nth-of-type(4)').click();
+                    window.history.pushState(null, '', configPathName);
+                }
+
+            }, false)));
+
         }
+
         console.log('DOM ready:');
+    };
+
+    const showConfig = () => {
+        console.log('showConfig');
     };
 
     ////////////////  end ////////////////////
 
+    const handleConfigPage = () => {
+        console.log('config ready');
+        document.querySelector('#root > div:nth-of-type(2)').style.display = 'none';
+        pageContainer.style.display = 'flex';
+    };
+
     const handlePlay = () => {
         console.log('play ready');
+    };
+
+    const handleMatchHistory = () => {
+        console.log('matchHistory ready');
+        if (location.pathname === configPathName) {
+            handleConfigPage();
+        }
     };
 
     const handleMatches = () => {
@@ -93,16 +204,16 @@
         const soundEffect2 = new Audio();
         soundEffect2.autoplay = true;
 
-        const configRow = document.createElement('div');
-        configRow.classList.add('css-k008qs');
-        configRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
+        const matchMenuRow = document.createElement('div');
+        matchMenuRow.classList.add('css-k008qs');
+        matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
 
-        const configContainer = document.createElement('div');
-        configContainer.classList.add('css-a6m3v9');
+        const matchMenuContainer = document.createElement('div');
+        matchMenuContainer.classList.add('css-a6m3v9');
 
-        configRow.appendChild(configContainer);
+        matchMenuRow.appendChild(matchMenuContainer);
 
-        document.querySelector('.css-k008qs').after(configRow);
+        document.querySelector('.css-k008qs').after(matchMenuRow);
 
         // PR font-size larger
         [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
@@ -201,7 +312,7 @@
             callerSelect.style.padding = '0 5px';
             callerSelect.onchange = onSelectChange;
 
-            configContainer.appendChild(callerSelect);
+            matchMenuContainer.appendChild(callerSelect);
 
             callerArr.forEach((caller) => {
                 const optionEl = document.createElement('option');
@@ -218,7 +329,7 @@
             tripleSoundSelect.style.padding = '0 5px';
             tripleSoundSelect.onchange = onSelectChange;
 
-            configContainer.appendChild(tripleSoundSelect);
+            matchMenuContainer.appendChild(tripleSoundSelect);
 
             tripleSoundArr.forEach((triple) => {
                 const optionEl = document.createElement('option');
@@ -237,7 +348,7 @@
             booBtn.style.padding = '0 var(--chakra-space-4)';
             booBtn.style.margin = '0';
             setActiveAttr(booBtn, boosound);
-            configContainer.appendChild(booBtn);
+            matchMenuContainer.appendChild(booBtn);
 
             booBtn.addEventListener('click', async (event) => {
                 const isActive = event.target.hasAttribute('data-active');
@@ -252,7 +363,7 @@
             nextLegSecSelect.style.padding = '0 5px';
             nextLegSecSelect.onchange = onSelectChange;
 
-            configContainer.appendChild(nextLegSecSelect);
+            matchMenuContainer.appendChild(nextLegSecSelect);
 
             nextLegSecArr.forEach((sec) => {
                 const optionEl = document.createElement('option');
@@ -283,7 +394,7 @@
 
             setActiveAttr(hideHeaderBtn, !hideHeaderGM);
 
-            configContainer.appendChild(hideHeaderBtn);
+            matchMenuContainer.appendChild(hideHeaderBtn);
 
             hideHeaderBtn.addEventListener('click', async (event) => {
                 const isActive = event.target.hasAttribute('data-active');
@@ -504,10 +615,6 @@
         console.log('boards ready');
     };
 
-    const handleMatchHistory = () => {
-        console.log('matchHistory ready');
-    };
-
     const readyClassesValues = Object.values(readyClasses);
 
     observeDOM(document.getElementById('root'), function(mutationrecords) {
@@ -516,8 +623,8 @@
                 const elemetClassList = [...record.addedNodes[0].classList];
                 return elemetClassList.some((className) => {
                     if (className.startsWith('css-')) {
-                        if (!readyClassesValues.includes(className)) return false;
                         // console.log('className', className);
+                        if (!readyClassesValues.includes(className)) return false;
                         const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
                         if (key) {
                             onDOMready();
