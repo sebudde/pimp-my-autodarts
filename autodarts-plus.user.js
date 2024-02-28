@@ -2,9 +2,9 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.0.4
+// @version      0.1.0
 // @description  Userscript for Autodarts
-// @author       sebudde / benebelter
+// @author       sebudde
 // @match        https://play.autodarts.io/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=autodarts.io
 // @license      MIT
@@ -28,8 +28,6 @@
 
     //////////////// CONFIG END ////////////////////
 
-    const apiUrl = 'https://api.autodarts.io/as/v0';
-
     const readyClasses = {
         play: 'css-1lua7td',
         lobbies: 'css-1q0rlnk',
@@ -39,6 +37,9 @@
     };
 
     let firstLoad = true;
+
+    let configPathName = '/config';
+    const pageContainer = document.createElement('div');
 
     const observeDOM = (function() {
         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
@@ -63,7 +64,9 @@
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
-    //////////////// add menu and page  ////////////////////
+    let callerData = {};
+
+    ////////////////   ////////////////////
 
     const setCallerData = async (name, value) => {
         const gmData = await GM.getValue('adp');
@@ -74,7 +77,7 @@
         const gmCallerValue = gmCallerData[data[0]] || {};
         const newCallerValue = {[data[1]]: value};
 
-        const callerData = {
+        callerData = {
             ...gmCallerData,
             [data[0]]: {...gmCallerValue, ...newCallerValue}
         };
@@ -84,65 +87,93 @@
         });
     };
 
-    let configPathName = '/config';
-    const pageContainer = document.createElement('div');
-    pageContainer.classList.add('css-gmuwbf');
-    const configContainer = document.createElement('div');
-    configContainer.classList.add('css-10z204m');
-    pageContainer.appendChild(configContainer);
-    configContainer.innerHTML = `
+    const callerObj = {
+        caller1: {
+            folder: '0',
+            name: 'Caller OFF'
+        },
+        caller2: {
+            folder: '1_male_eng',
+            name: 'Male eng',
+            server: 'https://autodarts.x10.mx',
+            fileExt: '.mp3'
+        },
+        caller3: {
+            folder: 'google_eng',
+            name: 'Google eng'
+        },
+        caller4: {
+            folder: 'google_de',
+            name: 'Google de'
+        }
+    };
+
+    const onDOMready = async () => {
+        if (firstLoad) {
+            firstLoad = false;
+
+            //////////////// caller data  ////////////////////
+
+            const gmData = await GM.getValue('adp');
+            const gmCallerData = gmData?.callerData || {};
+
+            callerData = {
+                ...gmCallerData, ...callerObj
+            };
+
+            await GM.setValue('adp', {
+                callerData: callerData
+            });
+
+            const callerObjLength = Object.keys(callerObj).length;
+
+            //////////////// add config page  ////////////////////
+
+            pageContainer.classList.add('css-gmuwbf');
+            const configContainer = document.createElement('div');
+            configContainer.classList.add('css-10z204m');
+            pageContainer.appendChild(configContainer);
+            configContainer.innerHTML = `
                     <h2 style="font-size: 1.5em; font-weight: 700; align-self: flex-start;">Config</h2>
                     <h3 style="font-size: 1.2em; font-weight: 700; align-self: flex-start;">Caller</h3>
                     `;
 
-    const adpData = await GM.getValue('adp');
+            for (let callerCount = callerObjLength + 1; callerCount <= callerObjLength + 5; callerCount++) {
+                const callerContainer = document.createElement('div');
+                callerContainer.classList.add('css-1p4eqnd');
+                callerContainer.style.gap = '2rem';
+                const callerServer = callerData[`caller${callerCount}`]?.server || '';
+                const callerName = callerData[`caller${callerCount}`]?.name || '';
+                const callerFolder = callerData[`caller${callerCount}`]?.folder || '';
+                const callerFileExt = callerData[`caller${callerCount}`]?.fileExt || '';
 
-    for (let callerCount = 1; callerCount <= 5; callerCount++) {
-        const callerContainer = document.createElement('div');
-        callerContainer.classList.add('css-1p4eqnd');
-        callerContainer.style.gap = '2rem';
-        const callerData = adpData?.callerData || {};
-        const callerServer = callerData[`caller${callerCount}`]?.server || '';
-        const callerName = callerData[`caller${callerCount}`]?.name || '';
-        const callerFolder = callerData[`caller${callerCount}`]?.folder || '';
-
-        callerContainer.innerHTML = `
+                callerContainer.innerHTML = `
                         <div class="css-1igwmid" style="margin-right: 2em">
-                            <b>Caller ${callerCount}</b>
+                            <b>Caller ${callerCount - callerObjLength}</b>
                         </div>
                         <div class="css-1igwmid">
-                            <div>Server</div>
-                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--server css-1ndqqtl" name="caller${callerCount}-server" value="${callerServer}"></div></div>
+                            <div class="css-u4ybgy" style="width: 240px"><div class="css-1igwmid"><input placeholder="Server" class="adp_caller--server css-1ndqqtl" name="caller${callerCount}-server" value="${callerServer}"></div></div>
                         </div>
                         <div class="css-1igwmid">
-                            <div>Name</div>
-                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--name css-1ndqqtl" name="caller${callerCount}-name" value="${callerName}"></div></div>
+                            <div class="css-u4ybgy"><div class="css-1igwmid"><input placeholder="Name" class="adp_caller--name css-1ndqqtl" name="caller${callerCount}-name" value="${callerName}"></div></div>
                         </div>
                         <div class="css-1igwmid">
-                            <div>Folder</div>
-                            <div class="css-u4ybgy"><div class="css-1igwmid"><input class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-folder" value="${callerFolder}"></div></div>
+                            <div class="css-u4ybgy"><div class="css-1igwmid"><input placeholder="Folder"  class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-folder" value="${callerFolder}"></div></div>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div class="css-u4ybgy" style="width: 100px"><div class="css-1igwmid"><input placeholder="File ext"  class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-fileExt" value="${callerFileExt}"></div></div>
                         </div>`;
-        configContainer.appendChild(callerContainer);
-    }
-    ;
+                configContainer.appendChild(callerContainer);
+            }
 
-    const input = configContainer.querySelectorAll('input');
-    [...input].forEach((el) => (el.addEventListener('blur', (e) => {
-        setCallerData(e.target.name, e.target.value);
-    })));
+            const input = configContainer.querySelectorAll('input');
+            [...input].forEach((el) => (el.addEventListener('blur', (e) => {
+                setCallerData(e.target.name, e.target.value);
+            })));
 
-    const onDOMready = () => {
-        if (firstLoad) {
-            firstLoad = false;
-
-            // add page
             document.getElementById('root').appendChild(pageContainer);
 
-            // const serverData = document.createElement('div');
-            // .style.display = 'none';
-            // document.getElementsByTagName('head')[0].appendChild(adp_style);
-
-            // add menu
+            //////////////// add menu  ////////////////////
             const menuBtn = document.createElement('a');
             menuBtn.classList.add('css-1nlwyv4');
             menuBtn.classList.add('adp_menu-btn');
@@ -233,7 +264,7 @@
             if (matchId) matchId = matchId.substring(0, uuidLength);
         }
 
-        let callerName = (await GM.getValue('callerName')) || '0';
+        let callerActive = (await GM.getValue('callerActive')) || '0';
         let triplesound = (await GM.getValue('triplesound')) || '0';
         let boosound = (await GM.getValue('boosound')) || false;
         let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
@@ -253,33 +284,6 @@
                     el.removeAttribute('data-active');
                 }
             };
-
-            const callerArr = [
-                {
-                    value: '0',
-                    name: 'Caller OFF'
-                }, {
-                    value: '1_male_eng',
-                    name: 'Male eng'
-                }, {
-                    value: 'google_eng',
-                    name: 'Google eng'
-                }, {
-                    value: 'google_de',
-                    name: 'Google de'
-                }, {
-                    value: 'russ_bray',
-                    name: 'The Voice RB'
-                }, {
-                    value: 'georgeno',
-                    name: 'The Puppy GN'
-                }, {
-                    value: 'shorty',
-                    name: 'Shorty'
-                }, {
-                    value: 'haulpinks',
-                    name: 'Flawless PH'
-                }];
 
             const tripleSoundArr = [
                 {
@@ -307,21 +311,22 @@
                 }];
 
             const callerSelect = document.createElement('select');
-            callerSelect.id = 'callerName';
+            callerSelect.id = 'callerActive';
             callerSelect.classList.add('css-1xbroe7');
             callerSelect.style.padding = '0 5px';
             callerSelect.onchange = onSelectChange;
 
             matchMenuContainer.appendChild(callerSelect);
 
-            callerArr.forEach((caller) => {
+            for (const [caller, data] of Object.entries(callerData)) {
+                if (!data.folder) continue;
                 const optionEl = document.createElement('option');
-                optionEl.value = caller.value;
-                optionEl.text = caller.name;
+                optionEl.value = caller;
+                optionEl.text = data.name || data.folder;
                 optionEl.style.backgroundColor = '#353d47';
-                if (callerName === caller.value) optionEl.setAttribute('selected', 'selected');
+                if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
                 callerSelect.appendChild(optionEl);
-            });
+            }
 
             const tripleSoundSelect = document.createElement('select');
             tripleSoundSelect.id = 'triplesound';
@@ -437,7 +442,6 @@
                 startBtnContainer.appendChild(startBtn);
 
                 startBtn.addEventListener('click', async (event) => {
-                    // soundEffect1.src = 'https://autodarts.x10.mx' + '/' + 'chase_the_sun/chase_the_sun.mp3';
                     soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
                     startBtnContainer.remove();
                 }, false);
@@ -457,9 +461,12 @@
         }
 
         const caller = async () => {
-            const callerServerUrl = 'https://autodarts.x10.mx';
+            const soundServerUrl = 'https://autodarts-plus.x10.mx';
 
-            const fileExt = '.mp3';
+            const callerFolder = callerData[callerActive]?.folder || '';
+            const callerServerUrl = callerData[callerActive]?.server || '';
+            const fileExt = callerData[callerActive]?.fileExt || '.mp3';
+
             const turnPoints = counterContainer.firstChild.innerText.trim();
             const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7')].map((el) => el.innerText);
 
@@ -489,42 +496,37 @@
                 if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
             }
 
-            // const curThrowPointsValue = curThrowPointsNumber * curThrowPointsMultiplier;
-            // console.log(curThrowPointsValue)
-            // console.log(curThrowPointsBed)
-
             if (turnPoints === 'BUST') {
-                playSound1(callerServerUrl + '/' + callerName + '/' + '0' + fileExt);
+                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
             } else {
                 if (curThrowPointsName === 'BULL') {
                     if (triplesound === '1') {
-                        playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
+                        playSound1(soundServerUrl + '/' + 'beep_1.mp3');
                     }
                     if (triplesound === '2') {
-                        playSound1(callerServerUrl + '/' + 'triple' + '/' + 'bullseye' + fileExt);
+                        playSound1(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
                     }
                 } else if (curThrowPointsBed === 'Outside') {
                     if (boosound === true) {
-                        const missPrefix = ['1st', '2nd', '3rd'];
-                        const randomMissPrefix = missPrefix[Math.floor(Math.random() * missPrefix.length)];
-                        playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'miss_' + randomMissPrefix + '_dart' + fileExt);
+                        const randomMissCount = Math.floor(Math.random() * 3) + 1;
+                        playSound1(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
                     }
                 } else {
                     if (curThrowPointsMultiplier === 3) {
                         if (triplesound === '1') {
-                            playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'triple_beep' + fileExt);
+                            playSound1(soundServerUrl + '/' + 'beep_1.mp3');
                         }
                         if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                            playSound1(callerServerUrl + '/' + 'russ_bray' + '/' + 'SoundHwTriple' + curThrowPointsNumber + '_old' + '.wav');
+                            playSound1(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
                         }
                     }
                 }
 
-                if (throwPointsArr.length === 3 && callerName.length) {
-                    if (callerName.startsWith('google')) {
-                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerName.substring(7, 9) + '&text=' + turnPoints);
+                if (throwPointsArr.length === 3 && callerFolder.length) {
+                    if (callerFolder.startsWith('google')) {
+                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
                     } else {
-                        playSound1(callerServerUrl + '/' + callerName + '/' + turnPoints + fileExt);
+                        if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
                     }
                 }
 
@@ -536,14 +538,14 @@
                         buttons.forEach((button) => {
                             // --- Leg finished ---
                             if (button.innerText === 'Next Leg') {
-                                playSound1(callerServerUrl + '/' + callerName + '/' + 'gameshot.mp3');
+                                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
                             }
                             // --- Match finished ---
                             if (button.innerText === 'Finish') {
                                 console.log('finish');
-                                playSound1(callerServerUrl + '/' + callerName + '/' + 'gameshot and the match.mp3');
+                                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
                                 setTimeout(() => {
-                                    playSound2(callerServerUrl + '/' + 'chase_the_sun/chase_the_sun.mp3');
+                                    playSound2(soundServerUrl + '/' + 'chase_the_sun.mp3');
                                 }, 1000);
                             }
                         });
@@ -565,15 +567,11 @@
 
                 if (winnerContainer) {
                     // --- Leg finished ---
-
                     console.log('Leg finished');
 
                     if (CONFIG.match.showThrowSumAtLegFinish) {
                         const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
                         const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
-
-                        // console.log(throwRound);
-                        // console.log(throwThisRound);
 
                         const throwsSum = (throwRound - 1) * 3 + throwThisRound;
 
