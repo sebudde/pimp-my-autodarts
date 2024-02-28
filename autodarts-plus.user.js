@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.2.0
+// @version      0.2.1
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -121,6 +121,7 @@
     };
 
     const onDOMready = async () => {
+        console.log('firstLoad', firstLoad);
         if (firstLoad) {
             firstLoad = false;
 
@@ -148,6 +149,7 @@
             const configContainer = document.createElement('div');
             configContainer.classList.add('css-10z204m');
             pageContainer.appendChild(configContainer);
+            pageContainer.style.display = 'none';
 
             const configHeader = document.createElement('h2');
             configHeader.classList.add('adp_config-header');
@@ -245,7 +247,10 @@
             const menuContainer = document.querySelector('.css-1igwmid');
             menuContainer.appendChild(menuBtn);
 
+            console.log('el', document.querySelectorAll('.css-1nlwyv4'));
+
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
+                console.log('pageContainer', pageContainer);
                 document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
                 pageContainer.style.display = 'none';
                 if (event.target.classList.contains('adp_menu-btn')) {
@@ -258,7 +263,7 @@
 
         }
 
-        console.log('DOM ready:');
+        console.log('DOM ready');
     };
 
     const showConfig = () => {
