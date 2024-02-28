@@ -1,6 +1,6 @@
 // ==UserScript==
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
-// @name         Autodarts Plus
+// @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
 // @version      0.1.0
 // @description  Userscript for Autodarts
@@ -158,7 +158,7 @@
                             <div class="css-u4ybgy"><div class="css-1igwmid"><input placeholder="Name" class="adp_caller--name css-1ndqqtl" name="caller${callerCount}-name" value="${callerName}"></div></div>
                         </div>
                         <div class="css-1igwmid">
-                            <div class="css-u4ybgy"><div class="css-1igwmid"><input placeholder="Folder"  class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-folder" value="${callerFolder}"></div></div>
+                            <div class="css-u4ybgy" style="width: 180px"><div class="css-1igwmid"><input placeholder="Folder"  class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-folder" value="${callerFolder}"></div></div>
                         </div>
                         <div class="css-1igwmid">
                             <div class="css-u4ybgy" style="width: 100px"><div class="css-1igwmid"><input placeholder="File ext"  class="adp_caller--folder css-1ndqqtl" name="caller${callerCount}-fileExt" value="${callerFileExt}"></div></div>
@@ -253,201 +253,191 @@
 
         const matchVariant = document.querySelector('.css-1xbroe7').innerText;
         if (matchVariant !== 'X01') return;
-        let matchId = '';
 
         const counterContainer = document.querySelector('.css-oyptjf');
-
-        const uuidLength = 36;
-        const pathName = location.pathname;
-        if (pathName.indexOf('matches/') >= 0) {
-            matchId = pathName.split('matches/')[1];
-            if (matchId) matchId = matchId.substring(0, uuidLength);
-        }
 
         let callerActive = (await GM.getValue('callerActive')) || '0';
         let triplesound = (await GM.getValue('triplesound')) || '0';
         let boosound = (await GM.getValue('boosound')) || false;
         let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
 
-        if (CONFIG.match.caller === 1) {
-            const onSelectChange = (event) => {
-                (async () => {
-                    eval(event.target.id + ' = event.target.value');
-                    await GM.setValue(event.target.id, event.target.value);
-                })();
-            };
+        const onSelectChange = (event) => {
+            (async () => {
+                eval(event.target.id + ' = event.target.value');
+                await GM.setValue(event.target.id, event.target.value);
+            })();
+        };
 
-            const setActiveAttr = (el, isActive) => {
-                if (isActive) {
-                    el.setAttribute('data-active', '');
-                } else {
-                    el.removeAttribute('data-active');
-                }
-            };
-
-            const tripleSoundArr = [
-                {
-                    value: '0',
-                    name: 'Triple OFF'
-                }, {
-                    value: '1',
-                    name: 'Beep'
-                }, {
-                    value: '2',
-                    name: 'Löwen'
-                }];
-
-            const nextLegSecArr = [
-                {
-                    value: 'OFF'
-                }, {
-                    value: '0'
-                }, {
-                    value: '5'
-                }, {
-                    value: '10'
-                }, {
-                    value: '20'
-                }];
-
-            const callerSelect = document.createElement('select');
-            callerSelect.id = 'callerActive';
-            callerSelect.classList.add('css-1xbroe7');
-            callerSelect.style.padding = '0 5px';
-            callerSelect.onchange = onSelectChange;
-
-            matchMenuContainer.appendChild(callerSelect);
-
-            for (const [caller, data] of Object.entries(callerData)) {
-                if (!data.folder) continue;
-                const optionEl = document.createElement('option');
-                optionEl.value = caller;
-                optionEl.text = data.name || data.folder;
-                optionEl.style.backgroundColor = '#353d47';
-                if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
-                callerSelect.appendChild(optionEl);
+        const setActiveAttr = (el, isActive) => {
+            if (isActive) {
+                el.setAttribute('data-active', '');
+            } else {
+                el.removeAttribute('data-active');
             }
+        };
 
-            const tripleSoundSelect = document.createElement('select');
-            tripleSoundSelect.id = 'triplesound';
-            tripleSoundSelect.classList.add('css-1xbroe7');
-            tripleSoundSelect.style.padding = '0 5px';
-            tripleSoundSelect.onchange = onSelectChange;
+        const tripleSoundArr = [
+            {
+                value: '0',
+                name: 'Triple OFF'
+            }, {
+                value: '1',
+                name: 'Beep'
+            }, {
+                value: '2',
+                name: 'Löwen'
+            }];
 
-            matchMenuContainer.appendChild(tripleSoundSelect);
+        const nextLegSecArr = [
+            {
+                value: 'OFF'
+            }, {
+                value: '0'
+            }, {
+                value: '5'
+            }, {
+                value: '10'
+            }, {
+                value: '20'
+            }];
 
-            tripleSoundArr.forEach((triple) => {
-                const optionEl = document.createElement('option');
-                optionEl.value = triple.value;
-                optionEl.text = triple.name;
-                optionEl.style.backgroundColor = '#353d47';
-                if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
-                tripleSoundSelect.appendChild(optionEl);
-            });
+        const callerSelect = document.createElement('select');
+        callerSelect.id = 'callerActive';
+        callerSelect.classList.add('css-1xbroe7');
+        callerSelect.style.padding = '0 5px';
+        callerSelect.onchange = onSelectChange;
 
-            const booBtn = document.createElement('button');
-            booBtn.id = 'boosound';
-            booBtn.innerText = 'BOO';
-            booBtn.classList.add('css-1xbmrf2');
-            booBtn.style.height = 'var(--chakra-sizes-8)';
-            booBtn.style.padding = '0 var(--chakra-space-4)';
-            booBtn.style.margin = '0';
-            setActiveAttr(booBtn, boosound);
-            matchMenuContainer.appendChild(booBtn);
+        matchMenuContainer.appendChild(callerSelect);
 
-            booBtn.addEventListener('click', async (event) => {
-                const isActive = event.target.hasAttribute('data-active');
-                setActiveAttr(booBtn, !isActive);
-                boosound = !isActive;
-                await GM.setValue('boosound', !isActive);
+        for (const [caller, data] of Object.entries(callerData)) {
+            if (!data.folder) continue;
+            const optionEl = document.createElement('option');
+            optionEl.value = caller;
+            optionEl.text = data.name || data.folder;
+            optionEl.style.backgroundColor = '#353d47';
+            if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
+            callerSelect.appendChild(optionEl);
+        }
+
+        const tripleSoundSelect = document.createElement('select');
+        tripleSoundSelect.id = 'triplesound';
+        tripleSoundSelect.classList.add('css-1xbroe7');
+        tripleSoundSelect.style.padding = '0 5px';
+        tripleSoundSelect.onchange = onSelectChange;
+
+        matchMenuContainer.appendChild(tripleSoundSelect);
+
+        tripleSoundArr.forEach((triple) => {
+            const optionEl = document.createElement('option');
+            optionEl.value = triple.value;
+            optionEl.text = triple.name;
+            optionEl.style.backgroundColor = '#353d47';
+            if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
+            tripleSoundSelect.appendChild(optionEl);
+        });
+
+        const booBtn = document.createElement('button');
+        booBtn.id = 'boosound';
+        booBtn.innerText = 'BOO';
+        booBtn.classList.add('css-1xbmrf2');
+        booBtn.style.height = 'var(--chakra-sizes-8)';
+        booBtn.style.padding = '0 var(--chakra-space-4)';
+        booBtn.style.margin = '0';
+        setActiveAttr(booBtn, boosound);
+        matchMenuContainer.appendChild(booBtn);
+
+        booBtn.addEventListener('click', async (event) => {
+            const isActive = event.target.hasAttribute('data-active');
+            setActiveAttr(booBtn, !isActive);
+            boosound = !isActive;
+            await GM.setValue('boosound', !isActive);
+        }, false);
+
+        const nextLegSecSelect = document.createElement('select');
+        nextLegSecSelect.id = 'nextLegAfterSec';
+        nextLegSecSelect.classList.add('css-1xbroe7');
+        nextLegSecSelect.style.padding = '0 5px';
+        nextLegSecSelect.onchange = onSelectChange;
+
+        matchMenuContainer.appendChild(nextLegSecSelect);
+
+        nextLegSecArr.forEach((sec) => {
+            const optionEl = document.createElement('option');
+            optionEl.value = sec.value;
+            optionEl.text = `Next Leg ${sec.value}s`;
+            optionEl.style.backgroundColor = '#353d47';
+            if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
+            nextLegSecSelect.appendChild(optionEl);
+        });
+
+        const hideHeaderBtn = document.createElement('button');
+        hideHeaderBtn.id = 'hideHeader';
+        hideHeaderBtn.innerText = 'Header';
+        hideHeaderBtn.classList.add('css-1xbmrf2');
+        hideHeaderBtn.style.height = 'var(--chakra-sizes-8)';
+        hideHeaderBtn.style.padding = '0 var(--chakra-space-4)';
+        hideHeaderBtn.style.margin = 0;
+
+        let hideHeaderGM = await GM.getValue('hideHeader');
+
+        const headerEl = document.querySelector('.css-gmuwbf');
+        const mainContainerEl = document.querySelector('.css-1lua7td');
+
+        if (hideHeaderGM) {
+            headerEl.style.display = 'none';
+            mainContainerEl.style.height = '100vh';
+        }
+
+        setActiveAttr(hideHeaderBtn, !hideHeaderGM);
+
+        matchMenuContainer.appendChild(hideHeaderBtn);
+
+        hideHeaderBtn.addEventListener('click', async (event) => {
+            const isActive = event.target.hasAttribute('data-active');
+            setActiveAttr(hideHeaderBtn, !isActive);
+            headerEl.style.display = isActive ? 'none' : 'flex';
+            mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
+
+            await GM.setValue('hideHeader', isActive);
+        }, false);
+
+        // ######### start iOS fix #########
+        // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+
+        const isiOS = [
+                'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
+            (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+        if (isiOS) {
+            const startBtnContainer = document.createElement('div');
+            startBtnContainer.style.position = 'absolute';
+            startBtnContainer.style.height = '100%';
+            startBtnContainer.style.width = '100%';
+            startBtnContainer.style.top = '0';
+            startBtnContainer.style.left = '0';
+            startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            startBtnContainer.style.display = 'flex';
+            startBtnContainer.style.justifyContent = 'center';
+            startBtnContainer.style.alignItems = 'center';
+
+            document.querySelector('#root').appendChild(startBtnContainer);
+
+            const startBtn = document.createElement('button');
+            startBtn.id = 'startBtn';
+            startBtn.innerText = 'START';
+            startBtn.classList.add('css-1xbmrf2');
+            startBtn.style.background = '#ffffff';
+            startBtn.style.color = '#646464';
+            startBtn.style.fontSize = '36px';
+            startBtn.style.padding = '36px 24px';
+            startBtnContainer.appendChild(startBtn);
+
+            startBtn.addEventListener('click', async (event) => {
+                soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                startBtnContainer.remove();
             }, false);
 
-            const nextLegSecSelect = document.createElement('select');
-            nextLegSecSelect.id = 'nextLegAfterSec';
-            nextLegSecSelect.classList.add('css-1xbroe7');
-            nextLegSecSelect.style.padding = '0 5px';
-            nextLegSecSelect.onchange = onSelectChange;
-
-            matchMenuContainer.appendChild(nextLegSecSelect);
-
-            nextLegSecArr.forEach((sec) => {
-                const optionEl = document.createElement('option');
-                optionEl.value = sec.value;
-                optionEl.text = `Next Leg ${sec.value}s`;
-                optionEl.style.backgroundColor = '#353d47';
-                if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
-                nextLegSecSelect.appendChild(optionEl);
-            });
-
-            const hideHeaderBtn = document.createElement('button');
-            hideHeaderBtn.id = 'hideHeader';
-            hideHeaderBtn.innerText = 'Header';
-            hideHeaderBtn.classList.add('css-1xbmrf2');
-            hideHeaderBtn.style.height = 'var(--chakra-sizes-8)';
-            hideHeaderBtn.style.padding = '0 var(--chakra-space-4)';
-            hideHeaderBtn.style.margin = 0;
-
-            let hideHeaderGM = await GM.getValue('hideHeader');
-
-            const headerEl = document.querySelector('.css-gmuwbf');
-            const mainContainerEl = document.querySelector('.css-1lua7td');
-
-            if (hideHeaderGM) {
-                headerEl.style.display = 'none';
-                mainContainerEl.style.height = '100vh';
-            }
-
-            setActiveAttr(hideHeaderBtn, !hideHeaderGM);
-
-            matchMenuContainer.appendChild(hideHeaderBtn);
-
-            hideHeaderBtn.addEventListener('click', async (event) => {
-                const isActive = event.target.hasAttribute('data-active');
-                setActiveAttr(hideHeaderBtn, !isActive);
-                headerEl.style.display = isActive ? 'none' : 'flex';
-                mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
-
-                await GM.setValue('hideHeader', isActive);
-            }, false);
-
-            // ######### start iOS fix #########
-            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-
-            const isiOS = [
-                    'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
-                (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-
-            if (isiOS) {
-                const startBtnContainer = document.createElement('div');
-                startBtnContainer.style.position = 'absolute';
-                startBtnContainer.style.height = '100%';
-                startBtnContainer.style.width = '100%';
-                startBtnContainer.style.top = '0';
-                startBtnContainer.style.left = '0';
-                startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                startBtnContainer.style.display = 'flex';
-                startBtnContainer.style.justifyContent = 'center';
-                startBtnContainer.style.alignItems = 'center';
-
-                document.querySelector('#root').appendChild(startBtnContainer);
-
-                const startBtn = document.createElement('button');
-                startBtn.id = 'startBtn';
-                startBtn.innerText = 'START';
-                startBtn.classList.add('css-1xbmrf2');
-                startBtn.style.background = '#ffffff';
-                startBtn.style.color = '#646464';
-                startBtn.style.fontSize = '36px';
-                startBtn.style.padding = '36px 24px';
-                startBtnContainer.appendChild(startBtn);
-
-                startBtn.addEventListener('click', async (event) => {
-                    soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-                    startBtnContainer.remove();
-                }, false);
-
-                // ######### end iOS fix #########
-            }
+            // ######### end iOS fix #########
         }
 
         function playSound1(fileName) {
@@ -555,7 +545,7 @@
         };
 
         const onCounterChange = async () => {
-            if (CONFIG.match.caller === 1) caller();
+            caller();
 
             if (CONFIG.match.inactiveSmall === 1) {
                 [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
@@ -598,15 +588,12 @@
             }
         };
 
-        if (!matchId) {
-            console.error('matchId could not be extracted from URL');
-        } else {
-            onCounterChange();
+        onCounterChange();
 
-            observeDOM(counterContainer, async function(m) {
-                onCounterChange();
-            });
-        }
+        observeDOM(counterContainer, async function(m) {
+            onCounterChange();
+        });
+
     };
 
     const handleBoards = () => {
