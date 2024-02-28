@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.1.0
+// @version      0.2.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -16,15 +16,6 @@
 
 (async function() {
     'use strict';
-
-    const CONFIG = {
-        match: {
-            inactiveSmall: 1,
-            caller: 1,
-            showThrowSumAtLegFinish: 1,
-            showNextLegAfter: 1
-        }
-    };
 
     //////////////// CONFIG END ////////////////////
 
@@ -61,10 +52,31 @@
     adp_style.type = 'text/css';
     adp_style.innerHTML = `
         .adp_points-small { font-size: 3em!important; }
+        .adp_config-header {
+              font-weight: 700;
+              align-self: flex-start;
+        }
+        h2.adp_config-header { font-size: 1.5em; }
+        h3.adp_config-header { font-size: 1.2em; }
+        button.adp_config-btn {
+            border-radius: var(--chakra-radii-md);
+            background: var(--chakra-colors-whiteAlpha-200);
+            font-weight: var(--chakra-fontWeights-semibold);
+            height: var(--chakra-sizes-8);
+            width: var(--chakra-sizes-16);
+        }
+        button.adp_config-btn:active, button.adp_config-btn.active {
+            background: var(--chakra-colors-whiteAlpha-400);
+        }
+        .adp_config-btn--label {
+            width: 350px;
+        }
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
     let callerData = {};
+    let inactiveSmall;
+    let showTotalDartsAtLegFinish;
 
     ////////////////   ////////////////////
 
@@ -129,14 +141,65 @@
 
             //////////////// add config page  ////////////////////
 
+            inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
+            showTotalDartsAtLegFinish = (await GM.getValue('showTotalDartsAtLegFinish')) ?? true;
+
             pageContainer.classList.add('css-gmuwbf');
             const configContainer = document.createElement('div');
             configContainer.classList.add('css-10z204m');
             pageContainer.appendChild(configContainer);
-            configContainer.innerHTML = `
-                    <h2 style="font-size: 1.5em; font-weight: 700; align-self: flex-start;">Config</h2>
-                    <h3 style="font-size: 1.2em; font-weight: 700; align-self: flex-start;">Caller</h3>
-                    `;
+
+            const configHeader = document.createElement('h2');
+            configHeader.classList.add('adp_config-header');
+            configHeader.innerText = 'Config';
+            configContainer.appendChild(configHeader);
+
+            const configContentHeader = document.createElement('h3');
+            configContentHeader.classList.add('adp_config-header');
+            configContentHeader.innerText = 'Match';
+            configContainer.appendChild(configContentHeader);
+
+            const configContentRow1 = document.createElement('div');
+            configContentRow1.classList.add('css-1p4eqnd');
+            configContentRow1.style.gap = '2rem';
+
+            configContentRow1.innerHTML = `
+            <div class="adp_config-btn--label">Show points of inactive player</div>
+            <button id="inactiveSmall" class="css-1xbmrf2 adp_config-btn${inactiveSmall ? ' active' : ''}">${inactiveSmall ? 'ON' : 'OFF'}</button>
+            `;
+
+            configContentRow1.querySelector('button#inactiveSmall').addEventListener('click', async (event) => {
+                const isInactiveSmall = event.target.classList.contains('active');
+                event.target.classList.toggle('active');
+                inactiveSmall = !isInactiveSmall;
+                await GM.setValue('inactiveSmall', !isInactiveSmall);
+                event.target.innerText = !isInactiveSmall ? 'ON' : 'OFF';
+            }, false);
+
+            const configContentRow2 = document.createElement('div');
+            configContentRow2.classList.add('css-1p4eqnd');
+            configContentRow2.style.gap = '2rem';
+
+            configContentRow2.innerHTML = `
+            <div class="adp_config-btn--label">Show total darts thrown at end of leg</div>
+            <button id="showTotalDartsAtLegFinish" class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinish ? ' active' : ''}">${showTotalDartsAtLegFinish ? 'ON' : 'OFF'}</button>
+            `;
+
+            configContentRow2.querySelector('button#showTotalDartsAtLegFinish').addEventListener('click', async (event) => {
+                const isShowTotalDartsAtLegFinish = event.target.classList.contains('active');
+                event.target.classList.toggle('active');
+                showTotalDartsAtLegFinish = !isShowTotalDartsAtLegFinish;
+                await GM.setValue('showTotalDartsAtLegFinish', !isShowTotalDartsAtLegFinish);
+                event.target.innerText = !isShowTotalDartsAtLegFinish ? 'ON' : 'OFF';
+            }, false);
+
+            configContainer.appendChild(configContentRow1);
+            configContainer.appendChild(configContentRow2);
+
+            const callerHeader = document.createElement('h3');
+            callerHeader.classList.add('adp_config-header');
+            callerHeader.innerText = 'Caller';
+            configContainer.appendChild(callerHeader);
 
             for (let callerCount = callerObjLength + 1; callerCount <= callerObjLength + 5; callerCount++) {
                 const callerContainer = document.createElement('div');
@@ -364,7 +427,7 @@
         nextLegSecArr.forEach((sec) => {
             const optionEl = document.createElement('option');
             optionEl.value = sec.value;
-            optionEl.text = `Next Leg ${sec.value}s`;
+            optionEl.text = `Next Leg ${sec.value}${sec.value === 'OFF' ? '' : ' sec'}`;
             optionEl.style.backgroundColor = '#353d47';
             if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
             nextLegSecSelect.appendChild(optionEl);
@@ -547,19 +610,19 @@
         const onCounterChange = async () => {
             caller();
 
-            if (CONFIG.match.inactiveSmall === 1) {
+            if (inactiveSmall) {
                 [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
                 [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.classList.add('adp_points-small')));
             }
 
-            if (CONFIG.match.showThrowSumAtLegFinish || CONFIG.match.showNextLegAfter) {
+            if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
                 const winnerContainer = document.querySelector('.css-e9w8hh');
 
                 if (winnerContainer) {
                     // --- Leg finished ---
                     console.log('Leg finished');
 
-                    if (CONFIG.match.showThrowSumAtLegFinish) {
+                    if (showTotalDartsAtLegFinish) {
                         const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
                         const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
 
@@ -573,7 +636,7 @@
                         sumContainerEl.replaceChildren(throwsSumEl);
                     }
 
-                    if (CONFIG.match.showNextLegAfter) {
+                    if (nextLegAfterSec !== 'OFF') {
                         const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
                         buttons.forEach((button) => {
                             if (button.innerText === 'Next Leg') {
