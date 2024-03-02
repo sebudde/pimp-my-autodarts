@@ -63,7 +63,8 @@
             background: var(--chakra-colors-whiteAlpha-200);
             font-weight: var(--chakra-fontWeights-semibold);
             height: var(--chakra-sizes-8);
-            width: var(--chakra-sizes-16);
+            min-width: var(--chakra-sizes-16);
+            padding: 0 var(--chakra-space-4);
         }
         button.adp_config-btn:active, button.adp_config-btn.active {
             background: var(--chakra-colors-whiteAlpha-400);
@@ -78,6 +79,19 @@
     let winnerSoundData = {};
     let inactiveSmall;
     let showTotalDartsAtLegFinish;
+
+    let headerEl;
+    let mainContainerEl;
+
+    const setActiveAttr = (el, isActive) => {
+        if (isActive) {
+            el.setAttribute('data-active', '');
+            el.classList.add('active');
+        } else {
+            el.removeAttribute('data-active');
+            el.classList.remove('active');
+        }
+    };
 
     ////////////////   ////////////////////
 
@@ -132,6 +146,39 @@
         console.log('firstLoad', firstLoad);
         if (firstLoad) {
             firstLoad = false;
+
+            headerEl = document.querySelector('.css-gmuwbf');
+            mainContainerEl = document.querySelectorAll('.css-gmuwbf')[1] || document.querySelector('.css-1lua7td');
+
+            const hideHeaderBtn = document.createElement('button');
+            hideHeaderBtn.id = 'hideHeader';
+            hideHeaderBtn.innerText = 'Header';
+            hideHeaderBtn.classList.add('adp_config-btn');
+            hideHeaderBtn.style.position = 'fixed';
+            hideHeaderBtn.style.bottom = '20px';
+            hideHeaderBtn.style.right = '20px';
+
+            let hideHeaderGM = await GM.getValue('hideHeader');
+            if (hideHeaderGM) {
+                headerEl.style.display = 'none';
+                mainContainerEl.style.height = '100vh';
+            }
+
+            setActiveAttr(hideHeaderBtn, !hideHeaderGM);
+
+            hideHeaderBtn.addEventListener('click', async (event) => {
+                console.log('click');
+                const isActive = event.target.classList.contains('active');
+                setActiveAttr(hideHeaderBtn, !isActive);
+                headerEl.style.display = isActive ? 'none' : 'flex';
+                mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
+
+                await GM.setValue('hideHeader', isActive);
+            }, false);
+
+            document.getElementById('root').appendChild(hideHeaderBtn);
+
+            //////////////// winner sound data  ////////////////////
 
             winnerSoundData = await GM.getValue('winnerSoundData') || {};
 
@@ -355,8 +402,10 @@
         });
         [...document.querySelectorAll('.css-3dp02s .css-x3m75h')].forEach((el) => (el.style.lineHeight = '9rem'));
 
-        const matchVariant = document.querySelector('.css-1xbroe7').innerText;
-        if (matchVariant !== 'X01') return;
+        const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
+        console.log('matchVariant', matchVariant);
+        const matchVariantArr = ['X01', 'Cricket'];
+        if (!matchVariantArr.includes(matchVariant)) return;
 
         const counterContainer = document.querySelector('.css-oyptjf');
 
@@ -370,14 +419,6 @@
                 eval(event.target.id + ' = event.target.value');
                 await GM.setValue(event.target.id, event.target.value);
             })();
-        };
-
-        const setActiveAttr = (el, isActive) => {
-            if (isActive) {
-                el.setAttribute('data-active', '');
-            } else {
-                el.removeAttribute('data-active');
-            }
         };
 
         const tripleSoundArr = [
@@ -473,37 +514,6 @@
             if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
             nextLegSecSelect.appendChild(optionEl);
         });
-
-        const hideHeaderBtn = document.createElement('button');
-        hideHeaderBtn.id = 'hideHeader';
-        hideHeaderBtn.innerText = 'Header';
-        hideHeaderBtn.classList.add('css-1xbmrf2');
-        hideHeaderBtn.style.height = 'var(--chakra-sizes-8)';
-        hideHeaderBtn.style.padding = '0 var(--chakra-space-4)';
-        hideHeaderBtn.style.margin = 0;
-
-        let hideHeaderGM = await GM.getValue('hideHeader');
-
-        const headerEl = document.querySelector('.css-gmuwbf');
-        const mainContainerEl = document.querySelector('.css-1lua7td');
-
-        if (hideHeaderGM) {
-            headerEl.style.display = 'none';
-            mainContainerEl.style.height = '100vh';
-        }
-
-        setActiveAttr(hideHeaderBtn, !hideHeaderGM);
-
-        matchMenuContainer.appendChild(hideHeaderBtn);
-
-        hideHeaderBtn.addEventListener('click', async (event) => {
-            const isActive = event.target.hasAttribute('data-active');
-            setActiveAttr(hideHeaderBtn, !isActive);
-            headerEl.style.display = isActive ? 'none' : 'flex';
-            mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
-
-            await GM.setValue('hideHeader', isActive);
-        }, false);
 
         // ######### start iOS fix #########
         // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
