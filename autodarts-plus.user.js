@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.2.1
+// @version      0.3.2
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -75,28 +75,36 @@
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
     let callerData = {};
+    let winnerSoundData = {};
     let inactiveSmall;
     let showTotalDartsAtLegFinish;
 
     ////////////////   ////////////////////
 
-    const setCallerData = async (name, value) => {
-        const gmData = await GM.getValue('adp');
-        const gmCallerData = gmData?.callerData || {};
+    const setAdpData = async (name, value) => {
 
         const data = name.split('-');
 
-        const gmCallerValue = gmCallerData[data[0]] || {};
-        const newCallerValue = {[data[1]]: value};
+        if (data[0].startsWith('caller')) {
+            const gmCallerData = await GM.getValue('callerData') || {};
+            const gmCallerValue = gmCallerData[data[0]] || {};
+            const newCallerValue = {[data[1]]: value};
+            callerData = {
+                ...gmCallerData,
+                [data[0]]: {...gmCallerValue, ...newCallerValue}
+            };
+            await GM.setValue('callerData', callerData);
 
-        callerData = {
-            ...gmCallerData,
-            [data[0]]: {...gmCallerValue, ...newCallerValue}
-        };
-
-        await GM.setValue('adp', {
-            callerData: callerData
-        });
+        } else if (data[0].startsWith('winnerSound')) {
+            const gmWinnerSoundData = await GM.getValue('winnerSoundData') || {};
+            const gmWinnerSoundValue = gmWinnerSoundData[data[0]] || {};
+            const newWinnerSoundValue = {[data[1]]: value};
+            winnerSoundData = {
+                ...gmWinnerSoundData,
+                [data[0]]: {...gmWinnerSoundValue, ...newWinnerSoundValue}
+            };
+        }
+        await GM.setValue('winnerSoundData', winnerSoundData);
     };
 
     const callerObj = {
@@ -125,18 +133,17 @@
         if (firstLoad) {
             firstLoad = false;
 
+            winnerSoundData = await GM.getValue('winnerSoundData') || {};
+
             //////////////// caller data  ////////////////////
 
-            const gmData = await GM.getValue('adp');
-            const gmCallerData = gmData?.callerData || {};
+            const gmCallerData = await GM.getValue('callerData') || {};
 
             callerData = {
                 ...gmCallerData, ...callerObj
             };
 
-            await GM.setValue('adp', {
-                callerData: callerData
-            });
+            await GM.setValue('callerData', callerData);
 
             const callerObjLength = Object.keys(callerObj).length;
 
@@ -206,7 +213,7 @@
             for (let callerCount = callerObjLength + 1; callerCount <= callerObjLength + 5; callerCount++) {
                 const callerContainer = document.createElement('div');
                 callerContainer.classList.add('css-1p4eqnd');
-                callerContainer.style.gap = '2rem';
+                callerContainer.style.gap = '30px';
                 const callerServer = callerData[`caller${callerCount}`]?.server || '';
                 const callerName = callerData[`caller${callerCount}`]?.name || '';
                 const callerFolder = callerData[`caller${callerCount}`]?.folder || '';
@@ -231,9 +238,34 @@
                 configContainer.appendChild(callerContainer);
             }
 
+            const winnerSoundHeader = document.createElement('h3');
+            winnerSoundHeader.classList.add('adp_config-header');
+            winnerSoundHeader.innerText = 'Winner sound';
+            configContainer.appendChild(winnerSoundHeader);
+
+            for (let winnerSoundCount = 1; winnerSoundCount <= 2; winnerSoundCount++) {
+                const winnerSoundContainer = document.createElement('div');
+                winnerSoundContainer.classList.add('css-1p4eqnd');
+                winnerSoundContainer.style.gap = '30px';
+                const winnerSoundPlayername = winnerSoundData[`winnerSound${winnerSoundCount}`]?.playername || '';
+                const winnerSoundSoundUrl = winnerSoundData[`winnerSound${winnerSoundCount}`]?.soundurl || '';
+
+                winnerSoundContainer.innerHTML = `
+                        <div class="css-1igwmid" style="margin-right: 2em">
+                            <b>Player ${winnerSoundCount}</b>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div class="css-u4ybgy" style="width: 240px"><div class="css-1igwmid"><input placeholder="Player name" class="adp_winnerSound--playername css-1ndqqtl" name="winnerSound${winnerSoundCount}-playername" value="${winnerSoundPlayername}"></div></div>
+                        </div>
+                        <div class="css-1igwmid">
+                            <div class="css-u4ybgy" style="width: 500px"><div class="css-1igwmid"><input placeholder="Sound URL" class="adp_winnerSound--soundurl css-1ndqqtl" name="winnerSound${winnerSoundCount}-soundurl" value="${winnerSoundSoundUrl}"></div></div>
+                        </div>`;
+                configContainer.appendChild(winnerSoundContainer);
+            }
+
             const input = configContainer.querySelectorAll('input');
             [...input].forEach((el) => (el.addEventListener('blur', (e) => {
-                setCallerData(e.target.name, e.target.value);
+                setAdpData(e.target.name, e.target.value);
             })));
 
             document.getElementById('root').appendChild(pageContainer);
@@ -247,10 +279,7 @@
             const menuContainer = document.querySelector('.css-1igwmid');
             menuContainer.appendChild(menuBtn);
 
-            console.log('el', document.querySelectorAll('.css-1nlwyv4'));
-
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
-                console.log('pageContainer', pageContainer);
                 document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
                 pageContainer.style.display = 'none';
                 if (event.target.classList.contains('adp_menu-btn')) {
@@ -316,8 +345,15 @@
 
         // PR font-size larger
         [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
-        [...document.querySelectorAll('.css-1memit')].forEach((el) => (el.style.marginTop = '-4px'));
-        [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '148px'));
+
+        //
+        [...document.querySelectorAll('.css-1memit')].forEach((el) => {
+            el.style.margin = '0';
+            el.style.padding = '0.5rem 0';
+            el.style.height = '100%';
+            el.style.justifyContent = 'space-between';
+        });
+        [...document.querySelectorAll('.css-3dp02s .css-x3m75h')].forEach((el) => (el.style.lineHeight = '9rem'));
 
         const matchVariant = document.querySelector('.css-1xbroe7').innerText;
         if (matchVariant !== 'X01') return;
@@ -590,6 +626,10 @@
 
                 if (winnerContainer) {
                     const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
+                    const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
+
+                    document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
+                    document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
 
                     setTimeout(() => {
                         const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
@@ -603,7 +643,8 @@
                                 console.log('finish');
                                 if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
                                 setTimeout(() => {
-                                    playSound2(soundServerUrl + '/' + 'chase_the_sun.mp3');
+                                    const winnerSoundurl = Object.values(winnerSoundData).find(winnersound => winnersound?.playername.toLowerCase() === winnerPlayer.toLowerCase())?.soundurl;
+                                    if (winnerSoundurl) playSound2(winnerSoundurl);
                                 }, 1000);
                             }
                         });
@@ -633,7 +674,7 @@
 
                         const throwsSum = (throwRound - 1) * 3 + throwThisRound;
 
-                        const throwsSumEl = document.createElement('span');
+                        const throwsSumEl = document.createElement('div');
                         throwsSumEl.style.fontSize = '0.5em';
                         throwsSumEl.innerHTML = throwsSum + ' Darts';
 
