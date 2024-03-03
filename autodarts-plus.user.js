@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.4
+// @version      0.5.5
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -78,6 +78,18 @@
         }
         .adp_config-btn--label {
             width: 350px;
+        }
+        .adp_cricket-rownumber {
+            font-size: var(--chakra-fontSizes-xl);
+            position: absolute;
+            left: calc(var(--chakra-space-2)* -1);
+            text-align: center;
+            width: var(--chakra-sizes-10);
+            border-radius: 3px;
+            color: var(--chakra-colors-white);
+            border: white;
+            opacity: 1;
+            background: var(--chakra-colors-gray-500);
         }
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
@@ -453,6 +465,13 @@
                     const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
                     if (el.querySelector('.css-cogxfh')) {
                         cricketClosedPoints.push(rowPoints);
+                    }
+
+                    if (!el.children.length) {
+                        const numberHolder = document.createElement('p');
+                        numberHolder.classList.add('adp_cricket-rownumber');
+                        numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
+                        el.appendChild(numberHolder);
                     }
                 }
             });
