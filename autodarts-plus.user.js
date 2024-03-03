@@ -687,15 +687,14 @@
                 }
                 //////////////// Cricket ////////////////////
                 if (matchVariant === 'Cricket') {
-                    if (curThrowPointsNumber < 0) return;
-
-                    if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
-                        setCricketClosedPoints();
-                        playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
-                    } else {
-                        playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
+                    if (curThrowPointsNumber >= 0) {
+                        if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
+                            setCricketClosedPoints();
+                            playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
+                        } else {
+                            playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
+                        }
                     }
-
                 }
                 //////////////// play Sound ////////////////////
                 if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
@@ -753,6 +752,7 @@
                     // --- Leg finished ---
                     console.log('Leg finished');
 
+                    // if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
                     if (showTotalDartsAtLegFinish) {
                         const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
                         const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
