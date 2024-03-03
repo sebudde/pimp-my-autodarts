@@ -65,6 +65,7 @@
             height: var(--chakra-sizes-8);
             min-width: var(--chakra-sizes-16);
             padding: 0 var(--chakra-space-4);
+            font-size: var(--chakra-fontSizes-md);
         }
         button.adp_config-btn:active, button.adp_config-btn.active {
             background: var(--chakra-colors-whiteAlpha-400);
@@ -537,10 +538,7 @@
         const booBtn = document.createElement('button');
         booBtn.id = 'boosound';
         booBtn.innerText = 'BOO';
-        booBtn.classList.add('css-1xbmrf2');
-        booBtn.style.height = 'var(--chakra-sizes-8)';
-        booBtn.style.padding = '0 var(--chakra-space-4)';
-        booBtn.style.margin = '0';
+        booBtn.classList.add('adp_config-btn');
         setActiveAttr(booBtn, boosound);
         matchMenuContainer.appendChild(booBtn);
 
