@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.3
+// @version      0.5.4
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
