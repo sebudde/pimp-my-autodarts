@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.5
+// @version      0.6.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -51,6 +51,18 @@
     const adp_style = document.createElement('style');
     adp_style.type = 'text/css';
     adp_style.innerHTML = `
+        body {
+          /* mobile viewport bug fix */
+          min-height: -webkit-fill-available!important;
+        }
+        html {
+          height: -webkit-fill-available;
+        }
+        #root {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
         .adp_points-small { font-size: 3em!important; }
         .adp_config-header {
               font-weight: 700;
@@ -172,10 +184,9 @@
         mainContainerEl = document.querySelectorAll('#root > div')[1];
 
         let hideHeaderGM = await GM.getValue('hideHeader');
-        if (hideHeaderGM) {
-            headerEl.style.display = 'none';
-            mainContainerEl.style.height = '100vh';
-        }
+        headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
+        mainContainerEl.style.height = 'auto';
+        mainContainerEl.style.flex = '1';
 
         if (firstLoad) {
             firstLoad = false;
@@ -194,7 +205,6 @@
                 const isActive = event.target.classList.contains('active');
                 setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
-                mainContainerEl.style.height = isActive ? '100vh' : 'calc(100vh - 72px)';
 
                 await GM.setValue('hideHeader', isActive);
             }, false);
