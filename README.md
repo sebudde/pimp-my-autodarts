@@ -10,6 +10,7 @@ Userscript to enhance [play.autodarts.io](https://play.autodarts.io).
     - sound on triple (off/beep/Löwen)
     - winner sound after match (set on config page)
     - sum of throws at end of leg (config page -> on/off)
+    - works for X01 and Cricket games
 - starts next leg after x sec (off / 0s / 5s / 10s / 20s)
 - smaller font size for score of non-active players (config page -> on/off)</br>
   (like [Autodarts inactive player smaller points display](https://greasyfork.org/de/scripts/487524-autodarts-inactive-player-smaller-points-display))

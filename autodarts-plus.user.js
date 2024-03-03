@@ -142,6 +142,10 @@
         }
     };
 
+    const getPlayerCount = () => {
+        return document.querySelectorAll('.css-3dp02s').length;
+    };
+
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
         headerEl = document.querySelector('.css-gmuwbf');
@@ -377,6 +381,8 @@
 
         const isSmallDisplay = window.innerHeight < 900;
 
+        let playerCount = getPlayerCount();
+
         // iOS fix
         // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
         const soundEffect1 = new Audio();
@@ -408,9 +414,28 @@
         [...document.querySelectorAll('.css-3dp02s .css-x3m75h')].forEach((el) => (el.style.lineHeight = '9rem'));
 
         const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
-        console.log('matchVariant', matchVariant);
+        // console.log('matchVariant', matchVariant);
         const matchVariantArr = ['X01', 'Cricket'];
         if (!matchVariantArr.includes(matchVariant)) return;
+
+        let cricketClosedPoints = [];
+
+        const setCricketClosedPoints = () => {
+            const cricketPointTable = document.querySelector('.css-teikk7');
+
+            if (!cricketPointTable?.children) return;
+            cricketClosedPoints = [];
+
+            [...cricketPointTable.children].forEach((el, i) => {
+                if (i % playerCount === 0) {
+                    const rowCount = (i / playerCount) + 1;
+                    const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
+                    if (el.querySelector('.css-cogxfh')) {
+                        cricketClosedPoints.push(rowPoints);
+                    }
+                }
+            });
+        };
 
         if (matchVariant === 'Cricket') {
             document.querySelector('.css-1gy113g').style.minHeight = 0;
@@ -422,6 +447,17 @@
                 [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.fontSize = '80pt'));
                 [...cricketPointContainer.querySelectorAll('.css-1mxmf5a, .css-g6rh15')].forEach((el) => (el.style.fontSize = '1.25rem'));
             }
+
+            setCricketClosedPoints();
+
+            const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
+            buttons.forEach((button) => {
+                if (button.innerText === 'Undo') {
+                    button.addEventListener('click', async (event) => {
+                        setCricketClosedPoints();
+                    }, false);
+                }
+            });
         }
 
         const counterContainer = document.querySelector('.css-oyptjf');
@@ -589,6 +625,14 @@
 
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
+            const playPointsSound = () => {
+                if (callerFolder.startsWith('google')) {
+                    playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
+                } else {
+                    if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
+                }
+            };
+
             const winnerContainer = document.querySelector('.css-e9w8hh');
 
             let curThrowPointsNumber = -1;
@@ -597,6 +641,7 @@
 
             if (curThrowPointsName) {
                 if (curThrowPointsName.startsWith('M')) {
+                    curThrowPointsNumber = 0;
                     curThrowPointsBed = 'Outside';
                 } else if (curThrowPointsName === 'Bull') {
                     curThrowPointsNumber = 25;
@@ -629,7 +674,7 @@
                         playSound1(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
                     }
                 } else {
-                    if (matchVariant === 'X01' || matchVariant === 'Cricket' && curThrowPointsNumber >= 15) {
+                    if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
                         if (curThrowPointsMultiplier === 3) {
                             if (triplesound === '1') {
                                 playSound1(soundServerUrl + '/' + 'beep_1.mp3');
@@ -643,24 +688,19 @@
                 //////////////// Cricket ////////////////////
                 if (matchVariant === 'Cricket') {
                     if (curThrowPointsNumber < 0) return;
-                    if (curThrowPointsNumber > 15) {
-                        if (callerFolder.startsWith('google')) {
-                            playSound2('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + curThrowPointsNumber);
-                        } else {
-                            if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + curThrowPointsNumber + '.mp3');
-                        }
+
+                    if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
+                        setCricketClosedPoints();
+                        playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
                     } else {
-                        playSound1(soundServerUrl + '/' + 'wrong-buzzer.mp3');
+                        playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
                     }
+
                 }
-                //////////////// X01 ////////////////////
-                if (matchVariant === 'X01') {
+                //////////////// play Sound ////////////////////
+                if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
                     if (throwPointsArr.length === 3 && callerFolder.length) {
-                        if (callerFolder.startsWith('google')) {
-                            playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
-                        } else {
-                            if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
-                        }
+                        playPointsSound();
                     }
                 }
                 //////////////// ATC ////////////////////
