@@ -442,7 +442,7 @@
         let cricketClosedPoints = [];
 
         const setCricketClosedPoints = () => {
-            const cricketPointTable = document.querySelector('.css-teikk7');
+            const cricketPointTable = document.querySelector('.css-1gy113g').children[2];
 
             if (!cricketPointTable?.children) return;
             cricketClosedPoints = [];
