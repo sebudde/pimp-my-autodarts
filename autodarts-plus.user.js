@@ -591,7 +591,7 @@
 
             const winnerContainer = document.querySelector('.css-e9w8hh');
 
-            let curThrowPointsNumber = 0;
+            let curThrowPointsNumber = -1;
             let curThrowPointsBed = '';
             let curThrowPointsMultiplier = 1;
 
@@ -642,6 +642,7 @@
                 }
                 //////////////// Cricket ////////////////////
                 if (matchVariant === 'Cricket') {
+                    if (curThrowPointsNumber < 0) return;
                     if (curThrowPointsNumber > 15) {
                         if (callerFolder.startsWith('google')) {
                             playSound2('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + curThrowPointsNumber);
