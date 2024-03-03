@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.0
+// @version      0.5.1
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -621,7 +621,7 @@
             const fileExt = callerData[callerActive]?.fileExt || '.mp3';
 
             const turnPoints = counterContainer.firstChild.innerText.trim();
-            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7')].map((el) => el.innerText);
+            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl')].map((el) => el.innerText);
 
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
@@ -677,10 +677,10 @@
                     if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
                         if (curThrowPointsMultiplier === 3) {
                             if (triplesound === '1') {
-                                playSound1(soundServerUrl + '/' + 'beep_1.mp3');
+                                playSound2(soundServerUrl + '/' + 'beep_1.mp3');
                             }
                             if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                                playSound1(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                                playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
                             }
                         }
                     }
