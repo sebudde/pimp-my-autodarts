@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.2
+// @version      0.5.3
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -80,6 +80,7 @@
     let winnerSoundData = {};
     let inactiveSmall;
     let showTotalDartsAtLegFinish;
+    let showTotalDartsAtLegFinishLarge;
 
     let headerEl;
     let mainContainerEl;
@@ -202,6 +203,7 @@
 
             inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
             showTotalDartsAtLegFinish = (await GM.getValue('showTotalDartsAtLegFinish')) ?? true;
+            showTotalDartsAtLegFinishLarge = (await GM.getValue('showTotalDartsAtLegFinishLarge')) ?? false;
 
             pageContainer.classList.add('css-gmuwbf');
             const configContainer = document.createElement('div');
@@ -243,6 +245,9 @@
             configContentRow2.innerHTML = `
             <div class="adp_config-btn--label">Show total darts thrown at end of leg</div>
             <button id="showTotalDartsAtLegFinish" class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinish ? ' active' : ''}">${showTotalDartsAtLegFinish ? 'ON' : 'OFF'}</button>
+            <button id="showTotalDartsAtLegFinishLarge" class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinishLarge ? ' active' : ''}">${showTotalDartsAtLegFinishLarge
+                ? 'LARGE'
+                : 'SMALL'}</button>
             `;
 
             configContentRow2.querySelector('button#showTotalDartsAtLegFinish').addEventListener('click', async (event) => {
@@ -251,6 +256,14 @@
                 showTotalDartsAtLegFinish = !isShowTotalDartsAtLegFinish;
                 await GM.setValue('showTotalDartsAtLegFinish', !isShowTotalDartsAtLegFinish);
                 event.target.innerText = !isShowTotalDartsAtLegFinish ? 'ON' : 'OFF';
+            }, false);
+
+            configContentRow2.querySelector('button#showTotalDartsAtLegFinishLarge').addEventListener('click', async (event) => {
+                const isShowTotalDartsAtLegFinishLarge = event.target.classList.contains('active');
+                event.target.classList.toggle('active');
+                showTotalDartsAtLegFinishLarge = !isShowTotalDartsAtLegFinishLarge;
+                await GM.setValue('showTotalDartsAtLegFinishLarge', !isShowTotalDartsAtLegFinishLarge);
+                event.target.innerText = !isShowTotalDartsAtLegFinishLarge ? 'LARGE' : 'SMALL';
             }, false);
 
             configContainer.appendChild(configContentRow1);
@@ -757,7 +770,7 @@
                         const throwsSum = (throwRound - 1) * 3 + throwThisRound;
 
                         const throwsSumEl = document.createElement('div');
-                        throwsSumEl.style.fontSize = '0.5em';
+                        if (!showTotalDartsAtLegFinishLarge) throwsSumEl.style.fontSize = '0.5em';
                         throwsSumEl.innerHTML = throwsSum + ' Darts';
 
                         const sumContainerEl = winnerContainer.querySelector('.css-x3m75h');
