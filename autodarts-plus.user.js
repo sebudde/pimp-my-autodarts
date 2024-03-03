@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.6.1
+// @version      0.6.2
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -312,7 +312,7 @@
                 const callerFileExt = callerData[`caller${callerCount}`]?.fileExt || '';
 
                 callerContainer.innerHTML = `
-                        <div class="css-1igwmid" style="margin-right: 2em">
+                        <div class="css-1igwmid" style="width: 60px; margin-right: 2em">
                             <b>Caller ${callerCount - callerObjLength}</b>
                         </div>
                         <div class="css-1igwmid">
@@ -335,22 +335,30 @@
             winnerSoundHeader.innerText = 'Winner sound';
             configContainer.appendChild(winnerSoundHeader);
 
-            for (let winnerSoundCount = 1; winnerSoundCount <= 2; winnerSoundCount++) {
+            const winnerSoundMax = 3;
+
+            for (let winnerSoundCount = 1; winnerSoundCount <= winnerSoundMax; winnerSoundCount++) {
                 const winnerSoundContainer = document.createElement('div');
                 winnerSoundContainer.classList.add('css-1p4eqnd');
                 winnerSoundContainer.style.gap = '30px';
                 const winnerSoundPlayername = winnerSoundData[`winnerSound${winnerSoundCount}`]?.playername || '';
                 const winnerSoundSoundUrl = winnerSoundData[`winnerSound${winnerSoundCount}`]?.soundurl || '';
 
+                const isLast = winnerSoundCount === winnerSoundMax;
+
                 winnerSoundContainer.innerHTML = `
-                        <div class="css-1igwmid" style="margin-right: 2em">
-                            <b>Player ${winnerSoundCount}</b>
+                        <div class="css-1igwmid" style="width: 60px; margin-right: 2em">
+                            <b>${isLast ? 'Fallback' : 'Player ' + winnerSoundCount}</b>
                         </div>
                         <div class="css-1igwmid">
-                            <div class="css-u4ybgy" style="width: 240px"><div class="css-1igwmid"><input placeholder="Player name" class="adp_winnerSound--playername css-1ndqqtl" name="winnerSound${winnerSoundCount}-playername" value="${winnerSoundPlayername}"></div></div>
+                            <div class="css-u4ybgy" style="width: 240px"><div class="css-1igwmid"><input ${isLast
+                    ? 'disabled'
+                    : ''} placeholder="Player name" class="adp_winnerSound--playername css-1ndqqtl" name="winnerSound${winnerSoundCount}-playername" value="${isLast
+                    ? 'Fallback'
+                    : winnerSoundPlayername}"></div></div>
                         </div>
                         <div class="css-1igwmid">
-                            <div class="css-u4ybgy" style="width: 500px"><div class="css-1igwmid"><input placeholder="Sound URL" class="adp_winnerSound--soundurl css-1ndqqtl" name="winnerSound${winnerSoundCount}-soundurl" value="${winnerSoundSoundUrl}"></div></div>
+                            <div class="css-u4ybgy" style="width: 500px"><div class="css-1igwmid"><input placeholder="Sound URL"  class="adp_winnerSound--soundurl css-1ndqqtl" name="winnerSound${winnerSoundCount}-soundurl" value="${winnerSoundSoundUrl}"></div></div>
                         </div>`;
                 configContainer.appendChild(winnerSoundContainer);
             }
@@ -650,11 +658,13 @@
         }
 
         function playSound1(fileName) {
+            if (!fileName) return;
             // console.log('fileName1', fileName);
             soundEffect1.src = fileName;
         }
 
         function playSound2(fileName) {
+            if (!fileName) return;
             // console.log('fileName2', fileName);
             soundEffect2.src = fileName;
         }
@@ -771,8 +781,12 @@
                                 console.log('finish');
                                 if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
                                 setTimeout(() => {
-                                    const winnerSoundurl = Object.values(winnerSoundData).find(winnersound => winnersound?.playername.toLowerCase() === winnerPlayer.toLowerCase())?.soundurl;
-                                    if (winnerSoundurl) playSound2(winnerSoundurl);
+                                    const winnerSoundDataValues = Object.values(winnerSoundData);
+                                    const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername.toLowerCase() === winnerPlayer.toLowerCase())?.soundurl;
+                                    const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
+
+                                    playSound2(winnerSoundurl || winnerFallbackSoundurl);
+
                                 }, 1000);
                             }
                         });
