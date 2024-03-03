@@ -67,8 +67,14 @@
             padding: 0 var(--chakra-space-4);
             font-size: var(--chakra-fontSizes-md);
         }
-        button.adp_config-btn:active, button.adp_config-btn.active {
+        button.adp_config-btn:active:not(:disabled), button.adp_config-btn.active:not(:disabled) {
             background: var(--chakra-colors-whiteAlpha-400);
+        }
+        button.adp_config-btn:disabled {
+            cursor: default;
+            opacity: 0.5;
+            // background: var(--chakra-colors-whiteAlpha-50);
+            // color:
         }
         .adp_config-btn--label {
             width: 350px;
@@ -245,9 +251,9 @@
             configContentRow2.innerHTML = `
             <div class="adp_config-btn--label">Show total darts thrown at end of leg</div>
             <button id="showTotalDartsAtLegFinish" class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinish ? ' active' : ''}">${showTotalDartsAtLegFinish ? 'ON' : 'OFF'}</button>
-            <button id="showTotalDartsAtLegFinishLarge" class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinishLarge ? ' active' : ''}">${showTotalDartsAtLegFinishLarge
-                ? 'LARGE'
-                : 'SMALL'}</button>
+            <button id="showTotalDartsAtLegFinishLarge" ${showTotalDartsAtLegFinish ? '' : 'disabled'} class="css-1xbmrf2 adp_config-btn${showTotalDartsAtLegFinishLarge
+                ? ' active'
+                : ''}">${showTotalDartsAtLegFinishLarge ? 'LARGE' : 'SMALL'}</button>
             `;
 
             configContentRow2.querySelector('button#showTotalDartsAtLegFinish').addEventListener('click', async (event) => {
@@ -256,6 +262,7 @@
                 showTotalDartsAtLegFinish = !isShowTotalDartsAtLegFinish;
                 await GM.setValue('showTotalDartsAtLegFinish', !isShowTotalDartsAtLegFinish);
                 event.target.innerText = !isShowTotalDartsAtLegFinish ? 'ON' : 'OFF';
+                configContentRow2.querySelector('button#showTotalDartsAtLegFinishLarge').toggleAttribute('disabled', isShowTotalDartsAtLegFinish);
             }, false);
 
             configContentRow2.querySelector('button#showTotalDartsAtLegFinishLarge').addEventListener('click', async (event) => {

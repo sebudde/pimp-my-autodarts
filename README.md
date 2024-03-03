@@ -9,7 +9,7 @@ Userscript to enhance [play.autodarts.io](https://play.autodarts.io).
     - boo-sound on miss (on/off)
     - sound on triple (off/beep/Löwen)
     - winner sound after match (set on config page)
-    - sum of throws at end of leg (config page -> on/off)
+    - sum of throws at end of leg (config page -> on/off/size)
     - works for X01 and Cricket games
 - starts next leg after x sec (off / 0s / 5s / 10s / 20s)
 - smaller font size for score of non-active players (config page -> on/off)</br>
