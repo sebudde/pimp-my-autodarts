@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.6.0
+// @version      0.6.1
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -60,8 +60,6 @@
         }
         #root {
             height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
         .adp_points-small { font-size: 3em!important; }
         .adp_config-header {
@@ -185,8 +183,8 @@
 
         let hideHeaderGM = await GM.getValue('hideHeader');
         headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
-        mainContainerEl.style.height = 'auto';
-        mainContainerEl.style.flex = '1';
+        mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
+        mainContainerEl.children[0].style.height = '100%';
 
         if (firstLoad) {
             firstLoad = false;
@@ -205,6 +203,7 @@
                 const isActive = event.target.classList.contains('active');
                 setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
+                mainContainerEl.style.height = isActive ? '100%' : 'calc(-72px + 100%)';
 
                 await GM.setValue('hideHeader', isActive);
             }, false);
