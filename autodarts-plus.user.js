@@ -144,11 +144,17 @@
 
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
+        headerEl = document.querySelector('.css-gmuwbf');
+        mainContainerEl = document.querySelectorAll('#root > div')[1];
+
+        let hideHeaderGM = await GM.getValue('hideHeader');
+        if (hideHeaderGM) {
+            headerEl.style.display = 'none';
+            mainContainerEl.style.height = '100vh';
+        }
+
         if (firstLoad) {
             firstLoad = false;
-
-            headerEl = document.querySelector('.css-gmuwbf');
-            mainContainerEl = document.querySelectorAll('.css-gmuwbf')[1] || document.querySelector('.css-1lua7td');
 
             const hideHeaderBtn = document.createElement('button');
             hideHeaderBtn.id = 'hideHeader';
@@ -158,16 +164,9 @@
             hideHeaderBtn.style.bottom = '20px';
             hideHeaderBtn.style.right = '20px';
 
-            let hideHeaderGM = await GM.getValue('hideHeader');
-            if (hideHeaderGM) {
-                headerEl.style.display = 'none';
-                mainContainerEl.style.height = '100vh';
-            }
-
             setActiveAttr(hideHeaderBtn, !hideHeaderGM);
 
             hideHeaderBtn.addEventListener('click', async (event) => {
-                console.log('click');
                 const isActive = event.target.classList.contains('active');
                 setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
@@ -372,6 +371,12 @@
     const handleMatch = async () => {
         console.log('match ready!');
 
+        const isiOS = [
+                'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
+            (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+        const isSmallDisplay = window.innerHeight < 900;
+
         // iOS fix
         // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
         const soundEffect1 = new Audio();
@@ -406,6 +411,18 @@
         console.log('matchVariant', matchVariant);
         const matchVariantArr = ['X01', 'Cricket'];
         if (!matchVariantArr.includes(matchVariant)) return;
+
+        if (matchVariant === 'Cricket') {
+            document.querySelector('.css-1gy113g').style.minHeight = 0;
+            if (isSmallDisplay) {
+                const cricketPointContainer = document.querySelector('.css-1gy113g .css-99py2g');
+                cricketPointContainer.style.minHeight = '195px';
+
+                [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '80pt'));
+                [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.fontSize = '80pt'));
+                [...cricketPointContainer.querySelectorAll('.css-1mxmf5a, .css-g6rh15')].forEach((el) => (el.style.fontSize = '1.25rem'));
+            }
+        }
 
         const counterContainer = document.querySelector('.css-oyptjf');
 
@@ -517,10 +534,6 @@
 
         // ######### start iOS fix #########
         // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-
-        const isiOS = [
-                'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
-            (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
 
         if (isiOS) {
             const startBtnContainer = document.createElement('div');
@@ -665,6 +678,10 @@
 
         const onCounterChange = async () => {
             caller();
+
+            inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
+
+            console.log('inactiveSmall', inactiveSmall);
 
             if (inactiveSmall) {
                 [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
