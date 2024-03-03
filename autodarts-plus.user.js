@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.3.2
+// @version      0.4.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -629,23 +629,42 @@
                         playSound1(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
                     }
                 } else {
-                    if (curThrowPointsMultiplier === 3) {
-                        if (triplesound === '1') {
-                            playSound1(soundServerUrl + '/' + 'beep_1.mp3');
-                        }
-                        if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                            playSound1(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                    if (matchVariant === 'X01' || matchVariant === 'Cricket' && curThrowPointsNumber >= 15) {
+                        if (curThrowPointsMultiplier === 3) {
+                            if (triplesound === '1') {
+                                playSound1(soundServerUrl + '/' + 'beep_1.mp3');
+                            }
+                            if (triplesound === '2' && curThrowPointsNumber >= 17) {
+                                playSound1(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                            }
                         }
                     }
                 }
-
-                if (throwPointsArr.length === 3 && callerFolder.length) {
-                    if (callerFolder.startsWith('google')) {
-                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
+                //////////////// Cricket ////////////////////
+                if (matchVariant === 'Cricket') {
+                    if (curThrowPointsNumber > 15) {
+                        if (callerFolder.startsWith('google')) {
+                            playSound2('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + curThrowPointsNumber);
+                        } else {
+                            if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + curThrowPointsNumber + '.mp3');
+                        }
                     } else {
-                        if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
+                        playSound1(soundServerUrl + '/' + 'wrong-buzzer.mp3');
                     }
                 }
+                //////////////// X01 ////////////////////
+                if (matchVariant === 'X01') {
+                    if (throwPointsArr.length === 3 && callerFolder.length) {
+                        if (callerFolder.startsWith('google')) {
+                            playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
+                        } else {
+                            if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
+                        }
+                    }
+                }
+                //////////////// ATC ////////////////////
+
+                ////////////////  ////////////////////
 
                 if (winnerContainer) {
                     const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
@@ -680,8 +699,6 @@
             caller();
 
             inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
-
-            console.log('inactiveSmall', inactiveSmall);
 
             if (inactiveSmall) {
                 [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
