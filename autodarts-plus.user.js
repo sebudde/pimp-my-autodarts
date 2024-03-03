@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.6.2
+// @version      0.6.3
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -312,7 +312,7 @@
                 const callerFileExt = callerData[`caller${callerCount}`]?.fileExt || '';
 
                 callerContainer.innerHTML = `
-                        <div class="css-1igwmid" style="width: 60px; margin-right: 2em">
+                        <div class="css-1igwmid" style="width: 70px; margin-right: 2em">
                             <b>Caller ${callerCount - callerObjLength}</b>
                         </div>
                         <div class="css-1igwmid">
@@ -347,7 +347,7 @@
                 const isLast = winnerSoundCount === winnerSoundMax;
 
                 winnerSoundContainer.innerHTML = `
-                        <div class="css-1igwmid" style="width: 60px; margin-right: 2em">
+                        <div class="css-1igwmid" style="width: 70px; margin-right: 2em">
                             <b>${isLast ? 'Fallback' : 'Player ' + winnerSoundCount}</b>
                         </div>
                         <div class="css-1igwmid">
