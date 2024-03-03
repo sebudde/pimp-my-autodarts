@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.5.1
+// @version      0.5.2
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -752,8 +752,7 @@
                     // --- Leg finished ---
                     console.log('Leg finished');
 
-                    // if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
-                    if (showTotalDartsAtLegFinish) {
+                    if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
                         const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
                         const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
 
