@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.6.3
+// @version      0.6.4
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -785,7 +785,7 @@
                                     const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername.toLowerCase() === winnerPlayer.toLowerCase())?.soundurl;
                                     const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
                                     console.log('winnerSoundurl', winnerSoundurl);
-                                    console.log('winnerFallbackSoundurl',winnerFallbackSoundurl);
+                                    console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
                                     playSound2(winnerSoundurl || winnerFallbackSoundurl);
 
                                 }, 1000);
