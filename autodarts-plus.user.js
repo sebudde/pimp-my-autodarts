@@ -784,7 +784,8 @@
                                     const winnerSoundDataValues = Object.values(winnerSoundData);
                                     const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername.toLowerCase() === winnerPlayer.toLowerCase())?.soundurl;
                                     const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
-
+                                    console.log('winnerSoundurl', winnerSoundurl);
+                                    console.log('winnerFallbackSoundurl',winnerFallbackSoundurl);
                                     playSound2(winnerSoundurl || winnerFallbackSoundurl);
 
                                 }, 1000);
