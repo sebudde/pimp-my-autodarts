@@ -6,6 +6,7 @@ Userscript to enhance [play.autodarts.io](https://play.autodarts.io).
 - adds Autodarts Caller like [Autodarts_Caller](https://greasyfork.org/de/scripts/487034-autodarts-caller)
   from [MartinHH](https://greasyfork.org/de/users/158094-martinhh)</a> with
     - select a caller (-> configurable) (**it's working on iOS/iPadOS** 😊)
+    - sound when Bot is throwing
     - boo-sound on miss (on/off)
     - sound on triple (off/beep/Löwen)
     - winner sound after match (set on config page)

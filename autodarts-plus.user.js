@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.6.5
+// @version      0.7.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -439,6 +439,8 @@
         soundEffect1.autoplay = true;
         const soundEffect2 = new Audio();
         soundEffect2.autoplay = true;
+        const soundEffect3 = new Audio();
+        soundEffect3.autoplay = true;
 
         const matchMenuRow = document.createElement('div');
         matchMenuRow.classList.add('css-k008qs');
@@ -669,6 +671,12 @@
             soundEffect2.src = fileName;
         }
 
+        function playSound3(fileName) {
+            if (!fileName) return;
+            // console.log('fileName3', fileName);
+            soundEffect3.src = fileName;
+        }
+
         const caller = async () => {
             const soundServerUrl = 'https://autodarts-plus.x10.mx';
 
@@ -680,6 +688,8 @@
             const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl')].map((el) => el.innerText);
 
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
+
+            const playerName = document.querySelector('.css-1acvlgt .css-1mxmf5a').innerText;
 
             const playPointsSound = () => {
                 if (callerFolder.startsWith('google')) {
@@ -714,86 +724,97 @@
                 if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
             }
 
-            if (turnPoints === 'BUST') {
-                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
-            } else {
-                if (curThrowPointsName === 'BULL') {
-                    if (triplesound === '1') {
-                        playSound1(soundServerUrl + '/' + 'beep_1.mp3');
-                    }
-                    if (triplesound === '2') {
-                        playSound1(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
-                    }
-                } else if (curThrowPointsBed === 'Outside') {
-                    if (boosound === true) {
-                        const randomMissCount = Math.floor(Math.random() * 3) + 1;
-                        playSound1(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
-                    }
+            const isBot = curThrowPointsName?.length && playerName.startsWith('BOT LEVEL');
+            if (isBot) {
+                if (curThrowPointsBed === 'Outside') {
+                    playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
                 } else {
-                    if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
-                        if (curThrowPointsMultiplier === 3) {
-                            if (triplesound === '1') {
-                                playSound2(soundServerUrl + '/' + 'beep_1.mp3');
-                            }
-                            if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                                playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
-                            }
-                        }
-                    }
-                }
-                //////////////// Cricket ////////////////////
-                if (matchVariant === 'Cricket') {
-                    if (curThrowPointsNumber >= 0) {
-                        if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
-                            setCricketClosedPoints();
-                            playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
-                        } else {
-                            playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
-                        }
-                    }
-                }
-                //////////////// play Sound ////////////////////
-                if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
-                    if (throwPointsArr.length === 3 && callerFolder.length) {
-                        playPointsSound();
-                    }
-                }
-                //////////////// ATC ////////////////////
-
-                ////////////////  ////////////////////
-
-                if (winnerContainer) {
-                    const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
-                    const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
-
-                    document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
-                    document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
-
-                    setTimeout(() => {
-                        const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
-                        buttons.forEach((button) => {
-                            // --- Leg finished ---
-                            if (button.innerText === 'Next Leg') {
-                                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
-                            }
-                            // --- Match finished ---
-                            if (button.innerText === 'Finish') {
-                                console.log('finish');
-                                if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
-                                setTimeout(() => {
-                                    const winnerSoundDataValues = Object.values(winnerSoundData);
-                                    const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
-                                    const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
-                                    console.log('winnerSoundurl', winnerSoundurl);
-                                    console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
-                                    playSound2(winnerSoundurl || winnerFallbackSoundurl);
-
-                                }, 1000);
-                            }
-                        });
-                    }, waitForSumCalling);
+                    playSound3(soundServerUrl + '/' + 'sound_chopping-wood.mp3');
                 }
             }
+
+            setTimeout(() => {
+                if (turnPoints === 'BUST') {
+                    if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
+                } else {
+                    if (curThrowPointsName === 'BULL') {
+                        if (triplesound === '1') {
+                            playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                        }
+                        if (triplesound === '2') {
+                            playSound2(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
+                        }
+                    } else if (curThrowPointsBed === 'Outside') {
+                        if (boosound === true) {
+                            const randomMissCount = Math.floor(Math.random() * 3) + 1;
+                            playSound2(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
+                        }
+                    } else {
+                        if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
+                            if (curThrowPointsMultiplier === 3) {
+                                if (triplesound === '1') {
+                                    playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                                }
+                                if (triplesound === '2' && curThrowPointsNumber >= 17) {
+                                    playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                                }
+                            }
+                        }
+                    }
+                    //////////////// Cricket ////////////////////
+                    if (matchVariant === 'Cricket') {
+                        if (curThrowPointsNumber >= 0) {
+                            if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
+                                setCricketClosedPoints();
+                                playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
+                            } else {
+                                playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
+                            }
+                        }
+                    }
+                    //////////////// play Sound ////////////////////
+                    if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
+                        if (throwPointsArr.length === 3 && callerFolder.length) {
+                            playPointsSound();
+                        }
+                    }
+                    //////////////// ATC ////////////////////
+
+                    ////////////////  ////////////////////
+
+                    if (winnerContainer) {
+                        const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
+                        const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
+
+                        document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
+                        document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
+
+                        setTimeout(() => {
+                            const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
+                            buttons.forEach((button) => {
+                                // --- Leg finished ---
+                                if (button.innerText === 'Next Leg') {
+                                    if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
+                                }
+                                // --- Match finished ---
+                                if (button.innerText === 'Finish') {
+                                    console.log('finish');
+                                    if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
+                                    setTimeout(() => {
+                                        const winnerSoundDataValues = Object.values(winnerSoundData);
+                                        const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
+                                        const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
+                                        console.log('winnerSoundurl', winnerSoundurl);
+                                        console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
+                                        playSound2(winnerSoundurl || winnerFallbackSoundurl);
+
+                                    }, 1000);
+                                }
+                            });
+                        }, waitForSumCalling);
+                    }
+                }
+            }, isBot ? 1000 : 0);
         };
 
         const onCounterChange = async () => {
