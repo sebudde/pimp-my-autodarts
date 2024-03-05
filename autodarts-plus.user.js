@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.7.1
+// @version      0.8.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -174,7 +174,7 @@
     };
 
     const getPlayerCount = () => {
-        return document.querySelectorAll('.css-3dp02s').length;
+        return document.querySelectorAll('.css-1iy3ld1').length;
     };
 
     const onDOMready = async () => {
@@ -477,13 +477,15 @@
         [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
 
         //
-        [...document.querySelectorAll('.css-1memit')].forEach((el) => {
+        const playerCardContainerClass = '.css-16cpq6p';
+        const playerCardContainer = document.querySelectorAll(`${playerCardContainerClass} > div:first-child > div:first-child`);
+        playerCardContainer.forEach((el) => {
             el.style.margin = '0';
             el.style.padding = '0.5rem 0';
             el.style.height = '100%';
             el.style.justifyContent = 'space-between';
+            if (el.querySelector('p')) el.querySelector('p').style.lineHeight = '9rem';
         });
-        [...document.querySelectorAll('.css-3dp02s .css-x3m75h')].forEach((el) => (el.style.lineHeight = '9rem'));
 
         const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
         // console.log('matchVariant', matchVariant);
@@ -705,11 +707,11 @@
             const fileExt = callerData[callerActive]?.fileExt || '.mp3';
 
             const turnPoints = counterContainer.firstChild.innerText.trim();
-            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl')].map((el) => el.innerText);
-
+            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
             const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
-            const playerName = document.querySelector('.css-1acvlgt .css-1mxmf5a').innerText;
+            const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
+            const playerName = playerEl && playerEl.innerText;
 
             const playPointsSound = () => {
                 if (callerFolder.startsWith('google')) {
@@ -744,7 +746,7 @@
                 if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
             }
 
-            const isBot = curThrowPointsName?.length && playerName.startsWith('BOT LEVEL');
+            const isBot = curThrowPointsName?.length && playerName && playerName.startsWith('BOT LEVEL');
             if (soundAfterBotThrow && isBot) {
                 if (curThrowPointsBed === 'Outside') {
                     playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
@@ -803,11 +805,14 @@
                     ////////////////  ////////////////////
 
                     if (winnerContainer) {
+                        console.log('winnerContainer!');
                         const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
                         const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
 
-                        document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
-                        document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
+                        if (document.querySelector('.game-shot-animation .css-x3m75h')) {
+                            document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
+                            document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
+                        }
 
                         setTimeout(() => {
                             const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
@@ -824,8 +829,8 @@
                                         const winnerSoundDataValues = Object.values(winnerSoundData);
                                         const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
                                         const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
-                                        console.log('winnerSoundurl', winnerSoundurl);
-                                        console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
+                                        // console.log('winnerSoundurl', winnerSoundurl);
+                                        // console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
                                         playSound2(winnerSoundurl || winnerFallbackSoundurl);
 
                                     }, 1000);
