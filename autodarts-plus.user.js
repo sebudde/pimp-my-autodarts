@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.7.0
+// @version      0.7.1
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -109,6 +109,7 @@
     let inactiveSmall;
     let showTotalDartsAtLegFinish;
     let showTotalDartsAtLegFinishLarge;
+    let soundAfterBotThrow;
 
     let headerEl;
     let mainContainerEl;
@@ -231,6 +232,7 @@
             inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
             showTotalDartsAtLegFinish = (await GM.getValue('showTotalDartsAtLegFinish')) ?? true;
             showTotalDartsAtLegFinishLarge = (await GM.getValue('showTotalDartsAtLegFinishLarge')) ?? false;
+            soundAfterBotThrow = (await GM.getValue('soundAfterBotThrow')) ?? true;
 
             pageContainer.classList.add('css-gmuwbf');
             const configContainer = document.createElement('div');
@@ -294,8 +296,26 @@
                 event.target.innerText = !isShowTotalDartsAtLegFinishLarge ? 'LARGE' : 'SMALL';
             }, false);
 
+            const configContentRow3 = document.createElement('div');
+            configContentRow3.classList.add('css-1p4eqnd');
+            configContentRow3.style.gap = '2rem';
+
+            configContentRow3.innerHTML = `
+            <div class="adp_config-btn--label">Play sound after a Bot threw</div>
+            <button id="soundAfterBotThrow" class="css-1xbmrf2 adp_config-btn${soundAfterBotThrow ? ' active' : ''}">${soundAfterBotThrow ? 'ON' : 'OFF'}</button>
+            `;
+
+            configContentRow3.querySelector('button#soundAfterBotThrow').addEventListener('click', async (event) => {
+                const isSoundAfterBotThrow = event.target.classList.contains('active');
+                event.target.classList.toggle('active');
+                soundAfterBotThrow = !isSoundAfterBotThrow;
+                await GM.setValue('soundAfterBotThrow', !isSoundAfterBotThrow);
+                event.target.innerText = !isSoundAfterBotThrow ? 'ON' : 'OFF';
+            }, false);
+
             configContainer.appendChild(configContentRow1);
             configContainer.appendChild(configContentRow2);
+            configContainer.appendChild(configContentRow3);
 
             const callerHeader = document.createElement('h3');
             callerHeader.classList.add('adp_config-header');
@@ -725,7 +745,7 @@
             }
 
             const isBot = curThrowPointsName?.length && playerName.startsWith('BOT LEVEL');
-            if (isBot) {
+            if (soundAfterBotThrow && isBot) {
                 if (curThrowPointsBed === 'Outside') {
                     playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
                 } else {
