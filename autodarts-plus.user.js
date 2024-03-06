@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.8.0
+// @version      0.10.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -113,6 +113,7 @@
 
     let headerEl;
     let mainContainerEl;
+    let matchMenuRow;
 
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
@@ -184,6 +185,7 @@
 
         let hideHeaderGM = await GM.getValue('hideHeader');
         headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
+        matchMenuRow.style.display = hideHeaderGM ? 'none' : 'flex';
         mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
         mainContainerEl.children[0].style.height = '100%';
 
@@ -204,6 +206,7 @@
                 const isActive = event.target.classList.contains('active');
                 setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
+                matchMenuRow.style.display = isActive ? 'none' : 'flex';
                 mainContainerEl.style.height = isActive ? '100%' : 'calc(-72px + 100%)';
 
                 await GM.setValue('hideHeader', isActive);
@@ -462,7 +465,7 @@
         const soundEffect3 = new Audio();
         soundEffect3.autoplay = true;
 
-        const matchMenuRow = document.createElement('div');
+        matchMenuRow = document.createElement('div');
         matchMenuRow.classList.add('css-k008qs');
         matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
 
