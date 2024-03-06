@@ -400,7 +400,6 @@
             menuBtn.innerText = 'Config';
             menuBtn.style.cursor = 'pointer';
             const menuContainer = headerEl.children[0].children[0].children[2].children[0];
-            console.log('menuContainer', menuContainer);
             menuContainer.appendChild(menuBtn);
 
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
