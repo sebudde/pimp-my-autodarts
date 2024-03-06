@@ -12,6 +12,7 @@
 // @updateURL    https://github.com/sebudde/autodarts-plus/raw/main/autodarts-plus.user.js
 // @grant        GM.getValue
 // @grant        GM.setValue
+// @require      https://github.com/sebudde/autodarts-plus/raw/main/sharedStuff.js
 // ==/UserScript==
 
 (async function() {
