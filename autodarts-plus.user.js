@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.10.0
+// @version      0.11.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -115,6 +115,8 @@
     let mainContainerEl;
     let matchMenuRow;
 
+    let hideHeaderGM = await GM.getValue('hideHeader');
+
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
             el.setAttribute('data-active', '');
@@ -180,12 +182,10 @@
 
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
-        headerEl = document.querySelector('.css-gmuwbf');
+        headerEl = document.querySelectorAll('#root > div')[0];
         mainContainerEl = document.querySelectorAll('#root > div')[1];
 
-        let hideHeaderGM = await GM.getValue('hideHeader');
         headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
-        matchMenuRow.style.display = hideHeaderGM ? 'none' : 'flex';
         mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
         mainContainerEl.children[0].style.height = '100%';
 
@@ -399,7 +399,8 @@
             menuBtn.classList.add('adp_menu-btn');
             menuBtn.innerText = 'Config';
             menuBtn.style.cursor = 'pointer';
-            const menuContainer = document.querySelector('.css-1igwmid');
+            const menuContainer = headerEl.children[0].children[0].children[2].children[0];
+            console.log('menuContainer', menuContainer);
             menuContainer.appendChild(menuBtn);
 
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
@@ -445,458 +446,464 @@
         console.log('matches ready');
     };
 
-    const handleMatch = async () => {
-        console.log('match ready!');
+    const handleMatch = () => {
+        setTimeout(async () => {
+            console.log('match ready!');
 
-        const isiOS = [
-                'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
-            (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+            const isiOS = [
+                    'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
+                (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
 
-        const isSmallDisplay = window.innerHeight < 900;
+            const isSmallDisplay = window.innerHeight < 900;
 
-        let playerCount = getPlayerCount();
+            let playerCount = getPlayerCount();
 
-        // iOS fix
-        // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-        const soundEffect1 = new Audio();
-        soundEffect1.autoplay = true;
-        const soundEffect2 = new Audio();
-        soundEffect2.autoplay = true;
-        const soundEffect3 = new Audio();
-        soundEffect3.autoplay = true;
+            // iOS fix
+            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+            const soundEffect1 = new Audio();
+            soundEffect1.autoplay = true;
+            const soundEffect2 = new Audio();
+            soundEffect2.autoplay = true;
+            const soundEffect3 = new Audio();
+            soundEffect3.autoplay = true;
 
-        matchMenuRow = document.createElement('div');
-        matchMenuRow.classList.add('css-k008qs');
-        matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
+            matchMenuRow = document.createElement('div');
+            // matchMenuRow.classList.add('css-k008qs');
+            matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
+            matchMenuRow.style.display = 'flex';
+            matchMenuRow.style.flexWrap = 'wrap';
+            matchMenuRow.style.gap = '0.5rem';
+            matchMenuRow.style.padding = '0px';
 
-        const matchMenuContainer = document.createElement('div');
-        matchMenuContainer.classList.add('css-a6m3v9');
+            matchMenuRow.style.display = hideHeaderGM ? 'none' : 'flex';
 
-        matchMenuRow.appendChild(matchMenuContainer);
+            const menuRow = mainContainerEl.children[0].children[0];
 
-        document.querySelector('.css-k008qs').after(matchMenuRow);
+            menuRow.after(matchMenuRow);
 
-        // PR font-size larger
-        [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
+            // PR font-size larger
+            [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
 
-        //
-        const playerCardContainerClass = '.css-16cpq6p';
-        const playerCardContainer = document.querySelectorAll(`${playerCardContainerClass} > div:first-child > div:first-child`);
-        playerCardContainer.forEach((el) => {
-            el.style.margin = '0';
-            el.style.padding = '0.5rem 0';
-            el.style.height = '100%';
-            el.style.justifyContent = 'space-between';
-            if (el.querySelector('p')) el.querySelector('p').style.lineHeight = '9rem';
-        });
+            //
+            // const playerCardContainerClass = '.css-16cpq6p';
+            // const playerCardContainer = document.querySelectorAll(`${playerCardContainerClass} > div:first-child > div:first-child`);
+            // playerCardContainer.forEach((el) => {
+            //     el.style.margin = '0';
+            //     el.style.padding = '0.5rem 0';
+            //     el.style.height = '100%';
+            //     el.style.justifyContent = 'space-between';
+            //     if (el.querySelector('p')) el.querySelector('p').style.lineHeight = '9rem';
+            // });
 
-        const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
-        // console.log('matchVariant', matchVariant);
-        const matchVariantArr = ['X01', 'Cricket'];
-        if (!matchVariantArr.includes(matchVariant)) return;
+            const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
+            // console.log('matchVariant', matchVariant);
+            const matchVariantArr = ['X01', 'Cricket'];
+            if (!matchVariantArr.includes(matchVariant)) return;
 
-        let cricketClosedPoints = [];
+            let cricketClosedPoints = [];
 
-        const setCricketClosedPoints = () => {
-            const cricketPointTable = document.querySelector('.css-1gy113g').children[2];
+            const setCricketClosedPoints = () => {
+                const cricketPointTable = document.querySelector('.css-1gy113g').children[2];
 
-            if (!cricketPointTable?.children) return;
-            cricketClosedPoints = [];
+                if (!cricketPointTable?.children) return;
+                cricketClosedPoints = [];
 
-            [...cricketPointTable.children].forEach((el, i) => {
-                if (i % playerCount === 0) {
-                    const rowCount = (i / playerCount) + 1;
-                    const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
-                    if (el.querySelector('.css-cogxfh')) {
-                        cricketClosedPoints.push(rowPoints);
+                [...cricketPointTable.children].forEach((el, i) => {
+                    if (i % playerCount === 0) {
+                        const rowCount = (i / playerCount) + 1;
+                        const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
+                        if (el.querySelector('.css-cogxfh')) {
+                            cricketClosedPoints.push(rowPoints);
+                        }
+
+                        if (!el.children.length) {
+                            const numberHolder = document.createElement('p');
+                            numberHolder.classList.add('adp_cricket-rownumber');
+                            numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
+                            el.appendChild(numberHolder);
+                        }
                     }
+                });
+            };
 
-                    if (!el.children.length) {
-                        const numberHolder = document.createElement('p');
-                        numberHolder.classList.add('adp_cricket-rownumber');
-                        numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
-                        el.appendChild(numberHolder);
-                    }
+            if (matchVariant === 'Cricket') {
+                document.querySelector('.css-1gy113g').style.minHeight = 0;
+                if (isSmallDisplay) {
+                    const cricketPointContainer = document.querySelector('.css-1gy113g .css-99py2g');
+                    cricketPointContainer.style.minHeight = '195px';
+
+                    [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '80pt'));
+                    [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.fontSize = '80pt'));
+                    [...cricketPointContainer.querySelectorAll('.css-1mxmf5a, .css-g6rh15')].forEach((el) => (el.style.fontSize = '1.25rem'));
                 }
-            });
-        };
 
-        if (matchVariant === 'Cricket') {
-            document.querySelector('.css-1gy113g').style.minHeight = 0;
-            if (isSmallDisplay) {
-                const cricketPointContainer = document.querySelector('.css-1gy113g .css-99py2g');
-                cricketPointContainer.style.minHeight = '195px';
+                setCricketClosedPoints();
 
-                [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '80pt'));
-                [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.fontSize = '80pt'));
-                [...cricketPointContainer.querySelectorAll('.css-1mxmf5a, .css-g6rh15')].forEach((el) => (el.style.fontSize = '1.25rem'));
+                const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
+                buttons.forEach((button) => {
+                    if (button.innerText === 'Undo') {
+                        button.addEventListener('click', async (event) => {
+                            setCricketClosedPoints();
+                        }, false);
+                    }
+                });
             }
 
-            setCricketClosedPoints();
+            const counterContainer = document.querySelector('.css-oyptjf');
 
-            const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
-            buttons.forEach((button) => {
-                if (button.innerText === 'Undo') {
-                    button.addEventListener('click', async (event) => {
-                        setCricketClosedPoints();
-                    }, false);
-                }
+            let callerActive = (await GM.getValue('callerActive')) || '0';
+            let triplesound = (await GM.getValue('triplesound')) || '0';
+            let boosound = (await GM.getValue('boosound')) || false;
+            let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
+
+            const onSelectChange = (event) => {
+                (async () => {
+                    eval(event.target.id + ' = event.target.value');
+                    await GM.setValue(event.target.id, event.target.value);
+                })();
+            };
+
+            const tripleSoundArr = [
+                {
+                    value: '0',
+                    name: 'Triple OFF'
+                }, {
+                    value: '1',
+                    name: 'Beep'
+                }, {
+                    value: '2',
+                    name: 'Löwen'
+                }];
+
+            const nextLegSecArr = [
+                {
+                    value: 'OFF'
+                }, {
+                    value: '0'
+                }, {
+                    value: '5'
+                }, {
+                    value: '10'
+                }, {
+                    value: '20'
+                }];
+
+            const callerSelect = document.createElement('select');
+            callerSelect.id = 'callerActive';
+            callerSelect.classList.add('css-1xbroe7');
+            callerSelect.style.padding = '0 5px';
+            callerSelect.onchange = onSelectChange;
+
+            matchMenuRow.appendChild(callerSelect);
+
+            for (const [caller, data] of Object.entries(callerData)) {
+                if (!data.folder) continue;
+                const optionEl = document.createElement('option');
+                optionEl.value = caller;
+                optionEl.text = data.name || data.folder;
+                optionEl.style.backgroundColor = '#353d47';
+                if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
+                callerSelect.appendChild(optionEl);
+            }
+
+            const tripleSoundSelect = document.createElement('select');
+            tripleSoundSelect.id = 'triplesound';
+            tripleSoundSelect.classList.add('css-1xbroe7');
+            tripleSoundSelect.style.padding = '0 5px';
+            tripleSoundSelect.onchange = onSelectChange;
+
+            matchMenuRow.appendChild(tripleSoundSelect);
+
+            tripleSoundArr.forEach((triple) => {
+                const optionEl = document.createElement('option');
+                optionEl.value = triple.value;
+                optionEl.text = triple.name;
+                optionEl.style.backgroundColor = '#353d47';
+                if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
+                tripleSoundSelect.appendChild(optionEl);
             });
-        }
 
-        const counterContainer = document.querySelector('.css-oyptjf');
+            const booBtn = document.createElement('button');
+            booBtn.id = 'boosound';
+            booBtn.innerText = 'BOO';
+            booBtn.classList.add('adp_config-btn');
+            setActiveAttr(booBtn, boosound);
+            matchMenuRow.appendChild(booBtn);
 
-        let callerActive = (await GM.getValue('callerActive')) || '0';
-        let triplesound = (await GM.getValue('triplesound')) || '0';
-        let boosound = (await GM.getValue('boosound')) || false;
-        let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
-
-        const onSelectChange = (event) => {
-            (async () => {
-                eval(event.target.id + ' = event.target.value');
-                await GM.setValue(event.target.id, event.target.value);
-            })();
-        };
-
-        const tripleSoundArr = [
-            {
-                value: '0',
-                name: 'Triple OFF'
-            }, {
-                value: '1',
-                name: 'Beep'
-            }, {
-                value: '2',
-                name: 'Löwen'
-            }];
-
-        const nextLegSecArr = [
-            {
-                value: 'OFF'
-            }, {
-                value: '0'
-            }, {
-                value: '5'
-            }, {
-                value: '10'
-            }, {
-                value: '20'
-            }];
-
-        const callerSelect = document.createElement('select');
-        callerSelect.id = 'callerActive';
-        callerSelect.classList.add('css-1xbroe7');
-        callerSelect.style.padding = '0 5px';
-        callerSelect.onchange = onSelectChange;
-
-        matchMenuContainer.appendChild(callerSelect);
-
-        for (const [caller, data] of Object.entries(callerData)) {
-            if (!data.folder) continue;
-            const optionEl = document.createElement('option');
-            optionEl.value = caller;
-            optionEl.text = data.name || data.folder;
-            optionEl.style.backgroundColor = '#353d47';
-            if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
-            callerSelect.appendChild(optionEl);
-        }
-
-        const tripleSoundSelect = document.createElement('select');
-        tripleSoundSelect.id = 'triplesound';
-        tripleSoundSelect.classList.add('css-1xbroe7');
-        tripleSoundSelect.style.padding = '0 5px';
-        tripleSoundSelect.onchange = onSelectChange;
-
-        matchMenuContainer.appendChild(tripleSoundSelect);
-
-        tripleSoundArr.forEach((triple) => {
-            const optionEl = document.createElement('option');
-            optionEl.value = triple.value;
-            optionEl.text = triple.name;
-            optionEl.style.backgroundColor = '#353d47';
-            if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
-            tripleSoundSelect.appendChild(optionEl);
-        });
-
-        const booBtn = document.createElement('button');
-        booBtn.id = 'boosound';
-        booBtn.innerText = 'BOO';
-        booBtn.classList.add('adp_config-btn');
-        setActiveAttr(booBtn, boosound);
-        matchMenuContainer.appendChild(booBtn);
-
-        booBtn.addEventListener('click', async (event) => {
-            const isActive = event.target.hasAttribute('data-active');
-            setActiveAttr(booBtn, !isActive);
-            boosound = !isActive;
-            await GM.setValue('boosound', !isActive);
-        }, false);
-
-        const nextLegSecSelect = document.createElement('select');
-        nextLegSecSelect.id = 'nextLegAfterSec';
-        nextLegSecSelect.classList.add('css-1xbroe7');
-        nextLegSecSelect.style.padding = '0 5px';
-        nextLegSecSelect.onchange = onSelectChange;
-
-        matchMenuContainer.appendChild(nextLegSecSelect);
-
-        nextLegSecArr.forEach((sec) => {
-            const optionEl = document.createElement('option');
-            optionEl.value = sec.value;
-            optionEl.text = `Next Leg ${sec.value}${sec.value === 'OFF' ? '' : ' sec'}`;
-            optionEl.style.backgroundColor = '#353d47';
-            if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
-            nextLegSecSelect.appendChild(optionEl);
-        });
-
-        // ######### start iOS fix #########
-        // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-
-        if (isiOS) {
-            const startBtnContainer = document.createElement('div');
-            startBtnContainer.style.position = 'absolute';
-            startBtnContainer.style.height = '100%';
-            startBtnContainer.style.width = '100%';
-            startBtnContainer.style.top = '0';
-            startBtnContainer.style.left = '0';
-            startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            startBtnContainer.style.display = 'flex';
-            startBtnContainer.style.justifyContent = 'center';
-            startBtnContainer.style.alignItems = 'center';
-
-            document.querySelector('#root').appendChild(startBtnContainer);
-
-            const startBtn = document.createElement('button');
-            startBtn.id = 'startBtn';
-            startBtn.innerText = 'START';
-            startBtn.classList.add('css-1xbmrf2');
-            startBtn.style.background = '#ffffff';
-            startBtn.style.color = '#646464';
-            startBtn.style.fontSize = '36px';
-            startBtn.style.padding = '36px 24px';
-            startBtnContainer.appendChild(startBtn);
-
-            startBtn.addEventListener('click', async (event) => {
-                soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-                startBtnContainer.remove();
+            booBtn.addEventListener('click', async (event) => {
+                const isActive = event.target.hasAttribute('data-active');
+                setActiveAttr(booBtn, !isActive);
+                boosound = !isActive;
+                await GM.setValue('boosound', !isActive);
             }, false);
 
-            // ######### end iOS fix #########
-        }
+            const nextLegSecSelect = document.createElement('select');
+            nextLegSecSelect.id = 'nextLegAfterSec';
+            nextLegSecSelect.classList.add('css-1xbroe7');
+            nextLegSecSelect.style.padding = '0 5px';
+            nextLegSecSelect.onchange = onSelectChange;
 
-        function playSound1(fileName) {
-            if (!fileName) return;
-            // console.log('fileName1', fileName);
-            soundEffect1.src = fileName;
-        }
+            matchMenuRow.appendChild(nextLegSecSelect);
 
-        function playSound2(fileName) {
-            if (!fileName) return;
-            // console.log('fileName2', fileName);
-            soundEffect2.src = fileName;
-        }
+            nextLegSecArr.forEach((sec) => {
+                const optionEl = document.createElement('option');
+                optionEl.value = sec.value;
+                optionEl.text = `Next Leg ${sec.value}${sec.value === 'OFF' ? '' : ' sec'}`;
+                optionEl.style.backgroundColor = '#353d47';
+                if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
+                nextLegSecSelect.appendChild(optionEl);
+            });
 
-        function playSound3(fileName) {
-            if (!fileName) return;
-            // console.log('fileName3', fileName);
-            soundEffect3.src = fileName;
-        }
+            // ######### start iOS fix #########
+            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
 
-        const caller = async () => {
-            const soundServerUrl = 'https://autodarts-plus.x10.mx';
+            if (isiOS) {
+                const startBtnContainer = document.createElement('div');
+                startBtnContainer.style.position = 'absolute';
+                startBtnContainer.style.height = '100%';
+                startBtnContainer.style.width = '100%';
+                startBtnContainer.style.top = '0';
+                startBtnContainer.style.left = '0';
+                startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                startBtnContainer.style.display = 'flex';
+                startBtnContainer.style.justifyContent = 'center';
+                startBtnContainer.style.alignItems = 'center';
 
-            const callerFolder = callerData[callerActive]?.folder || '';
-            const callerServerUrl = callerData[callerActive]?.server || '';
-            const fileExt = callerData[callerActive]?.fileExt || '.mp3';
+                document.querySelector('#root').appendChild(startBtnContainer);
 
-            const turnPoints = counterContainer.firstChild.innerText.trim();
-            const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
-            const curThrowPointsName = throwPointsArr.slice(-1)[0];
+                const startBtn = document.createElement('button');
+                startBtn.id = 'startBtn';
+                startBtn.innerText = 'START';
+                startBtn.classList.add('css-1xbmrf2');
+                startBtn.style.background = '#ffffff';
+                startBtn.style.color = '#646464';
+                startBtn.style.fontSize = '36px';
+                startBtn.style.padding = '36px 24px';
+                startBtnContainer.appendChild(startBtn);
 
-            const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
-            const playerName = playerEl && playerEl.innerText;
+                startBtn.addEventListener('click', async (event) => {
+                    soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                    startBtnContainer.remove();
+                }, false);
 
-            const playPointsSound = () => {
-                if (callerFolder.startsWith('google')) {
-                    playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
-                } else {
-                    if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
+                // ######### end iOS fix #########
+            }
+
+            function playSound1(fileName) {
+                if (!fileName) return;
+                // console.log('fileName1', fileName);
+                soundEffect1.src = fileName;
+            }
+
+            function playSound2(fileName) {
+                if (!fileName) return;
+                // console.log('fileName2', fileName);
+                soundEffect2.src = fileName;
+            }
+
+            function playSound3(fileName) {
+                if (!fileName) return;
+                // console.log('fileName3', fileName);
+                soundEffect3.src = fileName;
+            }
+
+            const caller = async () => {
+                const soundServerUrl = 'https://autodarts-plus.x10.mx';
+
+                const callerFolder = callerData[callerActive]?.folder || '';
+                const callerServerUrl = callerData[callerActive]?.server || '';
+                const fileExt = callerData[callerActive]?.fileExt || '.mp3';
+
+                const turnPoints = counterContainer.firstChild.innerText.trim();
+                const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
+                const curThrowPointsName = throwPointsArr.slice(-1)[0];
+
+                const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
+                const playerName = playerEl && playerEl.innerText;
+
+                const playPointsSound = () => {
+                    if (callerFolder.startsWith('google')) {
+                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
+                    } else {
+                        if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
+                    }
+                };
+
+                const winnerContainer = document.querySelector('.css-e9w8hh');
+
+                let curThrowPointsNumber = -1;
+                let curThrowPointsBed = '';
+                let curThrowPointsMultiplier = 1;
+
+                if (curThrowPointsName) {
+                    if (curThrowPointsName.startsWith('M')) {
+                        curThrowPointsNumber = 0;
+                        curThrowPointsBed = 'Outside';
+                    } else if (curThrowPointsName === 'Bull') {
+                        curThrowPointsNumber = 25;
+                        curThrowPointsBed = 'D';
+                    } else if (curThrowPointsName === '25') {
+                        curThrowPointsNumber = 25;
+                        curThrowPointsBed = 'S';
+                    } else {
+                        curThrowPointsNumber = curThrowPointsName.slice(1);
+                        curThrowPointsBed = curThrowPointsName.charAt(0);
+                    }
+
+                    if (curThrowPointsBed === 'D') curThrowPointsMultiplier = 2;
+                    if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
+                }
+
+                const isBot = curThrowPointsName?.length && playerName && playerName.startsWith('BOT LEVEL');
+                if (soundAfterBotThrow && isBot) {
+                    if (curThrowPointsBed === 'Outside') {
+                        playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
+                    } else {
+                        playSound3(soundServerUrl + '/' + 'sound_chopping-wood.mp3');
+                    }
+                }
+
+                setTimeout(() => {
+                    if (turnPoints === 'BUST') {
+                        if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
+                    } else {
+                        if (curThrowPointsName === 'BULL') {
+                            if (triplesound === '1') {
+                                playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                            }
+                            if (triplesound === '2') {
+                                playSound2(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
+                            }
+                        } else if (curThrowPointsBed === 'Outside') {
+                            if (boosound === true) {
+                                const randomMissCount = Math.floor(Math.random() * 3) + 1;
+                                playSound2(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
+                            }
+                        } else {
+                            if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
+                                if (curThrowPointsMultiplier === 3) {
+                                    if (triplesound === '1') {
+                                        playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                                    }
+                                    if (triplesound === '2' && curThrowPointsNumber >= 17) {
+                                        playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                                    }
+                                }
+                            }
+                        }
+                        //////////////// Cricket ////////////////////
+                        if (matchVariant === 'Cricket') {
+                            if (curThrowPointsNumber >= 0) {
+                                if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
+                                    setCricketClosedPoints();
+                                    playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
+                                } else {
+                                    playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
+                                }
+                            }
+                        }
+                        //////////////// play Sound ////////////////////
+                        if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
+                            if (throwPointsArr.length === 3 && callerFolder.length) {
+                                playPointsSound();
+                            }
+                        }
+                        //////////////// ATC ////////////////////
+
+                        ////////////////  ////////////////////
+
+                        if (winnerContainer) {
+                            console.log('winnerContainer!');
+                            const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
+                            const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
+
+                            if (document.querySelector('.game-shot-animation .css-x3m75h')) {
+                                document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
+                                document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
+                            }
+
+                            setTimeout(() => {
+                                const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
+                                buttons.forEach((button) => {
+                                    // --- Leg finished ---
+                                    if (button.innerText === 'Next Leg') {
+                                        if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
+                                    }
+                                    // --- Match finished ---
+                                    if (button.innerText === 'Finish') {
+                                        console.log('finish');
+                                        if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
+                                        setTimeout(() => {
+                                            const winnerSoundDataValues = Object.values(winnerSoundData);
+                                            const winnerSoundurl = winnerSoundDataValues.find(
+                                                winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
+                                            const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
+                                            console.log('winnerSoundurl', winnerSoundurl);
+                                            console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
+                                            playSound2(winnerSoundurl || winnerFallbackSoundurl);
+
+                                        }, 1000);
+                                    }
+                                });
+                            }, waitForSumCalling);
+                        }
+                    }
+                }, isBot ? 1000 : 0);
+            };
+
+            const onCounterChange = async () => {
+                caller();
+
+                inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
+
+                if (inactiveSmall) {
+                    [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
+                    [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.classList.add('adp_points-small')));
+                }
+
+                if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
+                    const winnerContainer = document.querySelector('.css-e9w8hh');
+
+                    if (winnerContainer) {
+                        // --- Leg finished ---
+                        console.log('Leg finished');
+
+                        if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
+                            const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
+                            const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
+
+                            const throwsSum = (throwRound - 1) * 3 + throwThisRound;
+
+                            const throwsSumEl = document.createElement('div');
+                            if (!showTotalDartsAtLegFinishLarge) throwsSumEl.style.fontSize = '0.5em';
+                            throwsSumEl.innerHTML = throwsSum + ' Darts';
+
+                            const sumContainerEl = winnerContainer.children[0].children[0];
+
+                            sumContainerEl.replaceChildren(throwsSumEl);
+                        }
+
+                        if (nextLegAfterSec !== 'OFF') {
+                            const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
+                            buttons.forEach((button) => {
+                                if (button.innerText === 'Next Leg') {
+                                    if (!parseInt(nextLegAfterSec)) return;
+                                    setTimeout(() => {
+                                        button.click();
+                                    }, parseInt(nextLegAfterSec) * 1000);
+                                }
+                            });
+                        }
+                    }
                 }
             };
 
-            const winnerContainer = document.querySelector('.css-e9w8hh');
-
-            let curThrowPointsNumber = -1;
-            let curThrowPointsBed = '';
-            let curThrowPointsMultiplier = 1;
-
-            if (curThrowPointsName) {
-                if (curThrowPointsName.startsWith('M')) {
-                    curThrowPointsNumber = 0;
-                    curThrowPointsBed = 'Outside';
-                } else if (curThrowPointsName === 'Bull') {
-                    curThrowPointsNumber = 25;
-                    curThrowPointsBed = 'D';
-                } else if (curThrowPointsName === '25') {
-                    curThrowPointsNumber = 25;
-                    curThrowPointsBed = 'S';
-                } else {
-                    curThrowPointsNumber = curThrowPointsName.slice(1);
-                    curThrowPointsBed = curThrowPointsName.charAt(0);
-                }
-
-                if (curThrowPointsBed === 'D') curThrowPointsMultiplier = 2;
-                if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
-            }
-
-            const isBot = curThrowPointsName?.length && playerName && playerName.startsWith('BOT LEVEL');
-            if (soundAfterBotThrow && isBot) {
-                if (curThrowPointsBed === 'Outside') {
-                    playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
-                } else {
-                    playSound3(soundServerUrl + '/' + 'sound_chopping-wood.mp3');
-                }
-            }
-
-            setTimeout(() => {
-                if (turnPoints === 'BUST') {
-                    if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
-                } else {
-                    if (curThrowPointsName === 'BULL') {
-                        if (triplesound === '1') {
-                            playSound2(soundServerUrl + '/' + 'beep_1.mp3');
-                        }
-                        if (triplesound === '2') {
-                            playSound2(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
-                        }
-                    } else if (curThrowPointsBed === 'Outside') {
-                        if (boosound === true) {
-                            const randomMissCount = Math.floor(Math.random() * 3) + 1;
-                            playSound2(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
-                        }
-                    } else {
-                        if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
-                            if (curThrowPointsMultiplier === 3) {
-                                if (triplesound === '1') {
-                                    playSound2(soundServerUrl + '/' + 'beep_1.mp3');
-                                }
-                                if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                                    playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
-                                }
-                            }
-                        }
-                    }
-                    //////////////// Cricket ////////////////////
-                    if (matchVariant === 'Cricket') {
-                        if (curThrowPointsNumber >= 0) {
-                            if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
-                                setCricketClosedPoints();
-                                playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
-                            } else {
-                                playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
-                            }
-                        }
-                    }
-                    //////////////// play Sound ////////////////////
-                    if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
-                        if (throwPointsArr.length === 3 && callerFolder.length) {
-                            playPointsSound();
-                        }
-                    }
-                    //////////////// ATC ////////////////////
-
-                    ////////////////  ////////////////////
-
-                    if (winnerContainer) {
-                        console.log('winnerContainer!');
-                        const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
-                        const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
-
-                        if (document.querySelector('.game-shot-animation .css-x3m75h')) {
-                            document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
-                            document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
-                        }
-
-                        setTimeout(() => {
-                            const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
-                            buttons.forEach((button) => {
-                                // --- Leg finished ---
-                                if (button.innerText === 'Next Leg') {
-                                    if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
-                                }
-                                // --- Match finished ---
-                                if (button.innerText === 'Finish') {
-                                    console.log('finish');
-                                    if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
-                                    setTimeout(() => {
-                                        const winnerSoundDataValues = Object.values(winnerSoundData);
-                                        const winnerSoundurl = winnerSoundDataValues.find(winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
-                                        const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
-                                        // console.log('winnerSoundurl', winnerSoundurl);
-                                        // console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
-                                        playSound2(winnerSoundurl || winnerFallbackSoundurl);
-
-                                    }, 1000);
-                                }
-                            });
-                        }, waitForSumCalling);
-                    }
-                }
-            }, isBot ? 1000 : 0);
-        };
-
-        const onCounterChange = async () => {
-            caller();
-
-            inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
-
-            if (inactiveSmall) {
-                [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
-                [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.classList.add('adp_points-small')));
-            }
-
-            if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
-                const winnerContainer = document.querySelector('.css-e9w8hh');
-
-                if (winnerContainer) {
-                    // --- Leg finished ---
-                    console.log('Leg finished');
-
-                    if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
-                        const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
-                        const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
-
-                        const throwsSum = (throwRound - 1) * 3 + throwThisRound;
-
-                        const throwsSumEl = document.createElement('div');
-                        if (!showTotalDartsAtLegFinishLarge) throwsSumEl.style.fontSize = '0.5em';
-                        throwsSumEl.innerHTML = throwsSum + ' Darts';
-
-                        const sumContainerEl = winnerContainer.querySelector('.css-x3m75h');
-                        sumContainerEl.replaceChildren(throwsSumEl);
-                    }
-
-                    if (nextLegAfterSec !== 'OFF') {
-                        const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
-                        buttons.forEach((button) => {
-                            if (button.innerText === 'Next Leg') {
-                                if (!parseInt(nextLegAfterSec)) return;
-                                setTimeout(() => {
-                                    button.click();
-                                }, parseInt(nextLegAfterSec) * 1000);
-                            }
-                        });
-                    }
-                }
-            }
-        };
-
-        onCounterChange();
-
-        observeDOM(counterContainer, async function(m) {
             onCounterChange();
-        });
 
+            observeDOM(counterContainer, async function(m) {
+                onCounterChange();
+            });
+        }, 100);
     };
 
     const handleBoards = () => {
