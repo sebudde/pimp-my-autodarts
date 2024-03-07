@@ -2,7 +2,7 @@
 // @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
 // @name         Autodarts Plus (caller & other stuff)
 // @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.11.0
+// @version      0.12.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -12,13 +12,42 @@
 // @updateURL    https://github.com/sebudde/autodarts-plus/raw/main/autodarts-plus.user.js
 // @grant        GM.getValue
 // @grant        GM.setValue
-// @require      https://github.com/sebudde/autodarts-plus/raw/main/sharedStuff.js
 // ==/UserScript==
 
 (async function() {
     'use strict';
 
-    //////////////// CONFIG END ////////////////////
+    let headerEl;
+    let mainContainerEl;
+    let menuContainerEl;
+    let hideHeaderGM = false;
+
+    // match
+    let matchMenuRow;
+    let menuRow;
+    let playerContainerEl;
+    let playerContainerInfoElArr;
+    let playerContainerStatsElArr;
+    let playerCount;
+
+    let activePlayerCard;
+    let inactivePlayerCardPointsElArr = [];
+    let winnerPlayerCard;
+
+    let turnContainerEl;
+
+    let matchVariantEl;
+    let matchVariant;
+    let isValidMatchVariant = false;
+
+    // config
+    let callerData = {};
+    let winnerSoundData = {};
+    let inactiveSmall;
+    let showTotalDartsAtLegFinish;
+    let showTotalDartsAtLegFinishLarge;
+    let soundAfterBotThrow;
+    //
 
     const readyClasses = {
         play: 'css-1lua7td',
@@ -33,20 +62,85 @@
     let configPathName = '/config';
     const pageContainer = document.createElement('div');
 
+    const isiOS = [
+            'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+    const isSmallDisplay = window.innerHeight < 900;
+
     const observeDOM = (function() {
         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-
-        return function(obj, callback) {
+        return function(obj, config, callback) {
             if (!obj || obj.nodeType !== 1) return;
             const mutationObserver = new MutationObserver(callback);
-            mutationObserver.observe(obj, {
-                attributes: true,
-                childList: true,
-                subtree: true
-            });
+            const mutConfig = {
+                ...{
+                    attributes: true,
+                    childList: true,
+                    subtree: true
+                }, ...config
+            };
+            mutationObserver.observe(obj, mutConfig);
             return mutationObserver;
         };
     })();
+
+    const setActiveAttr = (el, isActive) => {
+        if (isActive) {
+            el.setAttribute('data-active', '');
+            el.classList.add('active');
+        } else {
+            el.removeAttribute('data-active');
+            el.classList.remove('active');
+        }
+    };
+
+    const setAdpData = async (name, value) => {
+
+        const data = name.split('-');
+
+        if (data[0].startsWith('caller')) {
+            const gmCallerData = await GM.getValue('callerData') || {};
+            const gmCallerValue = gmCallerData[data[0]] || {};
+            const newCallerValue = {[data[1]]: value};
+            callerData = {
+                ...gmCallerData,
+                [data[0]]: {...gmCallerValue, ...newCallerValue}
+            };
+            await GM.setValue('callerData', callerData);
+
+        } else if (data[0].startsWith('winnerSound')) {
+            const gmWinnerSoundData = await GM.getValue('winnerSoundData') || {};
+            const gmWinnerSoundValue = gmWinnerSoundData[data[0]] || {};
+            const newWinnerSoundValue = {[data[1]]: value};
+            winnerSoundData = {
+                ...gmWinnerSoundData,
+                [data[0]]: {...gmWinnerSoundValue, ...newWinnerSoundValue}
+            };
+        }
+        await GM.setValue('winnerSoundData', winnerSoundData);
+    };
+
+    const callerObj = {
+        caller1: {
+            folder: '0',
+            name: 'Caller OFF'
+        },
+        caller2: {
+            folder: '1_male_eng',
+            name: 'Male eng',
+            server: 'https://autodarts.x10.mx',
+            fileExt: '.mp3'
+        },
+        caller3: {
+            folder: 'google_eng',
+            name: 'Google eng'
+        },
+        caller4: {
+            folder: 'google_de',
+            name: 'Google de'
+        }
+    };
 
     //////////////// CSS classes start ////////////////////
     const adp_style = document.createElement('style');
@@ -105,93 +199,22 @@
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
-    let callerData = {};
-    let winnerSoundData = {};
-    let inactiveSmall;
-    let showTotalDartsAtLegFinish;
-    let showTotalDartsAtLegFinishLarge;
-    let soundAfterBotThrow;
-
-    let headerEl;
-    let mainContainerEl;
-    let matchMenuRow;
-
-    let hideHeaderGM = await GM.getValue('hideHeader');
-
-    const setActiveAttr = (el, isActive) => {
-        if (isActive) {
-            el.setAttribute('data-active', '');
-            el.classList.add('active');
-        } else {
-            el.removeAttribute('data-active');
-            el.classList.remove('active');
-        }
-    };
-
-    ////////////////   ////////////////////
-
-    const setAdpData = async (name, value) => {
-
-        const data = name.split('-');
-
-        if (data[0].startsWith('caller')) {
-            const gmCallerData = await GM.getValue('callerData') || {};
-            const gmCallerValue = gmCallerData[data[0]] || {};
-            const newCallerValue = {[data[1]]: value};
-            callerData = {
-                ...gmCallerData,
-                [data[0]]: {...gmCallerValue, ...newCallerValue}
-            };
-            await GM.setValue('callerData', callerData);
-
-        } else if (data[0].startsWith('winnerSound')) {
-            const gmWinnerSoundData = await GM.getValue('winnerSoundData') || {};
-            const gmWinnerSoundValue = gmWinnerSoundData[data[0]] || {};
-            const newWinnerSoundValue = {[data[1]]: value};
-            winnerSoundData = {
-                ...gmWinnerSoundData,
-                [data[0]]: {...gmWinnerSoundValue, ...newWinnerSoundValue}
-            };
-        }
-        await GM.setValue('winnerSoundData', winnerSoundData);
-    };
-
-    const callerObj = {
-        caller1: {
-            folder: '0',
-            name: 'Caller OFF'
-        },
-        caller2: {
-            folder: '1_male_eng',
-            name: 'Male eng',
-            server: 'https://autodarts.x10.mx',
-            fileExt: '.mp3'
-        },
-        caller3: {
-            folder: 'google_eng',
-            name: 'Google eng'
-        },
-        caller4: {
-            folder: 'google_de',
-            name: 'Google de'
-        }
-    };
-
-    const getPlayerCount = () => {
-        return document.querySelectorAll('.css-1iy3ld1').length;
-    };
-
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
-        headerEl = document.querySelectorAll('#root > div')[0];
-        mainContainerEl = document.querySelectorAll('#root > div')[1];
-
-        headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
-        mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
-        mainContainerEl.children[0].style.height = '100%';
 
         if (firstLoad) {
             firstLoad = false;
+            hideHeaderGM = await GM.getValue('hideHeader');
+
+            headerEl = document.querySelectorAll('#root > div')[0];
+            headerEl.classList.add('adp_header');
+            mainContainerEl = document.querySelectorAll('#root > div')[1];
+            mainContainerEl.classList.add('adp_maincontainer');
+            menuContainerEl = headerEl.children[0].children[0].children[2].children[0];
+
+            headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
+            mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
+            mainContainerEl.children[0].style.height = '100%';
 
             const hideHeaderBtn = document.createElement('button');
             hideHeaderBtn.id = 'hideHeader';
@@ -400,15 +423,14 @@
             menuBtn.classList.add('adp_menu-btn');
             menuBtn.innerText = 'Config';
             menuBtn.style.cursor = 'pointer';
-            const menuContainer = headerEl.children[0].children[0].children[2].children[0];
-            menuContainer.appendChild(menuBtn);
+            menuContainerEl.appendChild(menuBtn);
 
             [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
                 document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
                 pageContainer.style.display = 'none';
                 if (event.target.classList.contains('adp_menu-btn')) {
                     // switch to page "Matches History" because we need its CSS
-                    menuContainer.querySelector('a:nth-of-type(4)').click();
+                    menuContainerEl.querySelector('a:nth-of-type(4)').click();
                     window.history.pushState(null, '', configPathName);
                 }
 
@@ -417,10 +439,6 @@
         }
 
         console.log('DOM ready');
-    };
-
-    const showConfig = () => {
-        console.log('showConfig');
     };
 
     ////////////////  end ////////////////////
@@ -450,55 +468,40 @@
         setTimeout(async () => {
             console.log('match ready!');
 
-            const isiOS = [
-                    'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
-                (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+            // TODO: Timo - unique ID for getting matchVariant
+            menuRow = mainContainerEl.children[0].children[0];
+            matchVariantEl = menuRow.querySelector('span');
+            matchVariant = matchVariantEl.innerText.split(' ')[0];
+            //
 
-            const isSmallDisplay = window.innerHeight < 900;
+            const isX01 = matchVariant === 'X01';
+            const isCricket = matchVariant === 'Cricket';
+            isValidMatchVariant = isX01 || isCricket;
 
-            let playerCount = getPlayerCount();
+            if (!isValidMatchVariant) return;
 
-            // iOS fix
-            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-            const soundEffect1 = new Audio();
-            soundEffect1.autoplay = true;
-            const soundEffect2 = new Audio();
-            soundEffect2.autoplay = true;
-            const soundEffect3 = new Audio();
-            soundEffect3.autoplay = true;
+            playerContainerEl = document.getElementById('ad-ext-player-display');
 
+            playerCount = playerContainerEl.children.length;
+
+            playerContainerInfoElArr = [...playerContainerEl.children].map((el) => el.children[0]);
+            playerContainerStatsElArr = [...playerContainerEl.children].map((el) => el.children[1]);
+
+            turnContainerEl = document.getElementById('ad-ext-turn');
+
+            // add match menu
             matchMenuRow = document.createElement('div');
-            // matchMenuRow.classList.add('css-k008qs');
             matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
             matchMenuRow.style.display = 'flex';
             matchMenuRow.style.flexWrap = 'wrap';
             matchMenuRow.style.gap = '0.5rem';
             matchMenuRow.style.padding = '0px';
-
             matchMenuRow.style.display = hideHeaderGM ? 'none' : 'flex';
-
-            const menuRow = mainContainerEl.children[0].children[0];
-
-            menuRow.after(matchMenuRow);
+            document.getElementById('ad-ext-game-settings-extra').style.display = 'flex';
+            document.getElementById('ad-ext-game-settings-extra').replaceChildren(matchMenuRow);
 
             // PR font-size larger
-            [...document.querySelectorAll('.css-1n5vwgq .css-qqfgvy')].forEach((el) => (el.style.fontSize = 'var(--chakra-fontSizes-xl)'));
-
-            //
-            // const playerCardContainerClass = '.css-16cpq6p';
-            // const playerCardContainer = document.querySelectorAll(`${playerCardContainerClass} > div:first-child > div:first-child`);
-            // playerCardContainer.forEach((el) => {
-            //     el.style.margin = '0';
-            //     el.style.padding = '0.5rem 0';
-            //     el.style.height = '100%';
-            //     el.style.justifyContent = 'space-between';
-            //     if (el.querySelector('p')) el.querySelector('p').style.lineHeight = '9rem';
-            // });
-
-            const matchVariant = document.querySelector('.css-1xbroe7').innerText.split(' ')[0];
-            // console.log('matchVariant', matchVariant);
-            const matchVariantArr = ['X01', 'Cricket'];
-            if (!matchVariantArr.includes(matchVariant)) return;
+            playerContainerStatsElArr.forEach((el) => (el.querySelectorAll('p')[1].style.fontSize = 'var(--chakra-fontSizes-xl)'));
 
             let cricketClosedPoints = [];
 
@@ -549,8 +552,7 @@
                 });
             }
 
-            const counterContainer = document.querySelector('.css-oyptjf');
-
+            // sounds
             let callerActive = (await GM.getValue('callerActive')) || '0';
             let triplesound = (await GM.getValue('triplesound')) || '0';
             let boosound = (await GM.getValue('boosound')) || false;
@@ -689,6 +691,15 @@
                 // ######### end iOS fix #########
             }
 
+            // iOS fix
+            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+            const soundEffect1 = new Audio();
+            soundEffect1.autoplay = true;
+            const soundEffect2 = new Audio();
+            soundEffect2.autoplay = true;
+            const soundEffect3 = new Audio();
+            soundEffect3.autoplay = true;
+
             function playSound1(fileName) {
                 if (!fileName) return;
                 // console.log('fileName1', fileName);
@@ -714,8 +725,12 @@
                 const callerServerUrl = callerData[callerActive]?.server || '';
                 const fileExt = callerData[callerActive]?.fileExt || '.mp3';
 
-                const turnPoints = counterContainer.firstChild.innerText.trim();
-                const throwPointsArr = [...counterContainer.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
+                // const turnPointsEl = turnContainerEl.children[0];
+                const turnPoints = document.querySelector('.ad-ext-turn-points').innerText.trim();
+                // TODO: Timo - class only for thrown darts
+                // const throwPointsArr = [...turnContainerEl.querySelectorAll('.ad-ext-turn-throw')].map((el) => el.innerText);
+                const throwPointsArr = [...turnContainerEl.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
+
                 const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
                 const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
@@ -728,8 +743,6 @@
                         if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
                     }
                 };
-
-                const winnerContainer = document.querySelector('.css-e9w8hh');
 
                 let curThrowPointsNumber = -1;
                 let curThrowPointsBed = '';
@@ -812,10 +825,9 @@
 
                         ////////////////  ////////////////////
 
-                        if (winnerContainer) {
-                            console.log('winnerContainer!');
+                        if (winnerPlayerCard) {
                             const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
-                            const winnerPlayer = winnerContainer.querySelector('span.css-1mxmf5a')?.innerText;
+                            const winnerPlayerName = winnerPlayerCard.firstChild.lastChild.querySelector('span')?.innerText;
 
                             if (document.querySelector('.game-shot-animation .css-x3m75h')) {
                                 document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
@@ -836,7 +848,7 @@
                                         setTimeout(() => {
                                             const winnerSoundDataValues = Object.values(winnerSoundData);
                                             const winnerSoundurl = winnerSoundDataValues.find(
-                                                winnersound => winnersound?.playername?.toLowerCase() === winnerPlayer?.toLowerCase())?.soundurl;
+                                                winnersound => winnersound?.playername?.toLowerCase() === winnerPlayerName?.toLowerCase())?.soundurl;
                                             const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
                                             console.log('winnerSoundurl', winnerSoundurl);
                                             console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
@@ -852,35 +864,40 @@
             };
 
             const onCounterChange = async () => {
+
+                activePlayerCard = document.querySelector('.ad-ext-player-active');
+                inactivePlayerCardPointsElArr = [...document.querySelectorAll('.ad-ext-player-inactive .ad-ext-player-score')];
+                winnerPlayerCard = document.querySelector('.ad-ext-player-winner');
+
                 caller();
 
                 inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
 
-                if (inactiveSmall) {
-                    [...document.querySelectorAll('.css-x3m75h')].forEach((el) => (el.classList.remove('adp_points-small')));
-                    [...document.querySelectorAll('.css-1a28glk .css-x3m75h')].forEach((el) => (el.classList.add('adp_points-small')));
+                if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
+                    console.log('jo');
+                    activePlayerCard.classList.remove('adp_points-small');
+                    [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
                 }
 
                 if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
-                    const winnerContainer = document.querySelector('.css-e9w8hh');
 
-                    if (winnerContainer) {
+                    if (winnerPlayerCard) {
                         // --- Leg finished ---
                         console.log('Leg finished');
 
                         if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
-                            const throwRound = document.querySelector('.css-1tw9fat')?.innerText?.split('/')[0]?.substring(1);
-                            const throwThisRound = document.querySelectorAll('.css-1chp9v4, .css-ucdbhl').length;
 
-                            const throwsSum = (throwRound - 1) * 3 + throwThisRound;
+                            const winnerStats = winnerPlayerCard.nextElementSibling;
+                            const winnerDartsText = winnerStats.innerText;
 
-                            const throwsSumEl = document.createElement('div');
-                            if (!showTotalDartsAtLegFinishLarge) throwsSumEl.style.fontSize = '0.5em';
-                            throwsSumEl.innerHTML = throwsSum + ' Darts';
+                            const winnerDarts = winnerDartsText.slice(winnerDartsText.indexOf('#') + 1, winnerDartsText.indexOf('|') - 1).trim();
 
-                            const sumContainerEl = winnerContainer.children[0].children[0];
+                            const winnerDartsEl = document.createElement('div');
+                            winnerDartsEl.style.fontSize = '0.5em';
+                            // if (!showTotalDartsAtLegFinishLarge) winnerDartsEl.style.fontSize = '0.5em';
+                            winnerDartsEl.innerHTML = winnerDarts + ' Darts';
 
-                            sumContainerEl.replaceChildren(throwsSumEl);
+                            winnerPlayerCard.querySelector('.ad-ext-player-score').replaceChildren(winnerDartsEl);
                         }
 
                         if (nextLegAfterSec !== 'OFF') {
@@ -900,7 +917,7 @@
 
             onCounterChange();
 
-            observeDOM(counterContainer, async function(m) {
+            observeDOM(turnContainerEl, {}, async function(m) {
                 onCounterChange();
             });
         }, 100);
@@ -912,7 +929,7 @@
 
     const readyClassesValues = Object.values(readyClasses);
 
-    observeDOM(document.getElementById('root'), function(mutationrecords) {
+    observeDOM(document.getElementById('root'), {}, function(mutationrecords) {
         mutationrecords.some((record) => {
             if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
                 const elemetClassList = [...record.addedNodes[0].classList];
