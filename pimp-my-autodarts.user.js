@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.14.0
+// @version      0.15.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -250,7 +250,9 @@
                 setActiveAttr(hideHeaderBtn, !isActive);
                 headerEl.style.display = isActive ? 'none' : 'flex';
                 matchMenuRow.style.display = isActive ? 'none' : 'flex';
-                mainContainerEl.style.height = isActive ? '100%' : 'calc(-72px + 100%)';
+                // mainContainerEl.style.height = isActive ? '100%' : 'calc(-72px + 100%)';
+                mainContainerEl.style.marginLeft = isActive ? '0' : '200px';
+                mainContainerEl.style.width = isActive ? '100%' : 'calc(-200px + 100%)';
 
                 await GM.setValue('hideHeader', isActive);
             }, false);
