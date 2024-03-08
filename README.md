@@ -1,6 +1,12 @@
-# Autodarts Plus
+# Pimp My Autodarts
 
 Userscript to enhance [play.autodarts.io](https://play.autodarts.io).
+
+**No official Autodarts Script!**<br>
+Just a private project to enhance AD for personal use.
+
+If you have questions, please first
+**TAKE A LOOK AT THE SCREENSHOTS BELOW**.
 
 - optimizes the layout for smaller screens (like iPad) (i.e. show/hide header)
 - adds Autodarts Caller like [Autodarts_Caller](https://greasyfork.org/de/scripts/487034-autodarts-caller)

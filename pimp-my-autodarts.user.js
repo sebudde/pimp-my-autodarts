@@ -1,15 +1,15 @@
 // ==UserScript==
-// @id           autodarts-plus@https://github.com/sebudde/autodarts-plus
-// @name         Autodarts Plus (caller & other stuff)
-// @namespace    https://github.com/sebudde/autodarts-plus
-// @version      0.13.0
+// @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
+// @name         Pimp My Autodarts (caller & other stuff)
+// @namespace    https://github.com/sebudde/pimp-my-autodarts
+// @version      0.14.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=autodarts.io
 // @license      MIT
-// @downloadURL  https://github.com/sebudde/autodarts-plus/raw/main/autodarts-plus.user.js
-// @updateURL    https://github.com/sebudde/autodarts-plus/raw/main/autodarts-plus.user.js
+// @downloadURL  https://github.com/sebudde/pimp-my-autodarts/raw/main/pimp-my-autodarts.user.js
+// @updateURL    https://github.com/sebudde/pimp-my-autodarts/raw/main/pimp-my-autodarts.user.js
 // @grant        GM.getValue
 // @grant        GM.setValue
 // ==/UserScript==
