@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.17.0
+// @version      0.18.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -30,7 +30,7 @@
     let playerContainerStatsElArr;
     let playerCount;
 
-    let activePlayerCard;
+    let activePlayerCardPointsEl;
     let inactivePlayerCardPointsElArr = [];
     let winnerPlayerCard;
 
@@ -920,7 +920,7 @@
 
                 const onCounterChange = async () => {
 
-                    activePlayerCard = document.querySelector('.ad-ext-player-active');
+                    activePlayerCardPointsEl = document.querySelector('.ad-ext-player-active .ad-ext-player-score');
                     inactivePlayerCardPointsElArr = [...document.querySelectorAll('.ad-ext-player-inactive .ad-ext-player-score')];
                     winnerPlayerCard = document.querySelector('.ad-ext-player-winner');
 
@@ -929,7 +929,7 @@
                     inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
 
                     if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
-                        activePlayerCard.classList.remove('adp_points-small');
+                        activePlayerCardPointsEl.classList.remove('adp_points-small');
                         [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
                     }
 
