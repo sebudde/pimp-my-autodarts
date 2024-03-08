@@ -19,7 +19,6 @@
 
     let headerEl;
     let mainContainerEl;
-    let menuContainerEl;
     let hideHeaderGM = false;
 
     // match
@@ -50,7 +49,7 @@
     //
 
     const readyClasses = {
-        play: 'css-1lua7td',
+        play: 'css-17ingc3',
         lobbies: 'css-1q0rlnk',
         table: 'css-p3eaf1', // matches & boards
         match: 'css-ul22ge',
@@ -84,6 +83,11 @@
             return mutationObserver;
         };
     })();
+
+    navigation.addEventListener('navigate', (e) => {
+        if (mainContainerEl) mainContainerEl.style.display = 'flex';
+        if (pageContainer) pageContainer.style.display = 'none';
+    });
 
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
@@ -184,6 +188,23 @@
         .adp_config-btn--label {
             width: 350px;
         }
+        .adp_pageContainer {
+            display: flex;
+            -webkit-box-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            justify-content: center;
+        }
+        .adp_configContainer {
+            display: flex;
+            -webkit-box-align: center;
+            align-items: center;
+            flex-direction: column;
+            gap: var(--chakra-space-4);
+            padding: 1rem;
+            width: 100%;
+            max-width: 1366px;
+        }
         .adp_cricket-rownumber {
             font-size: var(--chakra-fontSizes-xl);
             position: absolute;
@@ -201,6 +222,8 @@
 
     const onDOMready = async () => {
         console.log('firstLoad', firstLoad);
+        mainContainerEl = document.querySelectorAll('#root > div')[1];
+        mainContainerEl.classList.add('adp_maincontainer');
 
         if (firstLoad) {
             firstLoad = false;
@@ -208,10 +231,6 @@
 
             headerEl = document.querySelectorAll('#root > div')[0];
             headerEl.classList.add('adp_header');
-            mainContainerEl = document.querySelectorAll('#root > div')[1];
-            mainContainerEl.classList.add('adp_maincontainer');
-            menuContainerEl = headerEl.children[0].children[0].children[2].children[0];
-
             headerEl.style.display = hideHeaderGM ? 'none' : 'flex';
             mainContainerEl.style.height = hideHeaderGM ? '100%' : 'calc(-72px + 100%)';
             mainContainerEl.children[0].style.height = '100%';
@@ -261,9 +280,9 @@
             showTotalDartsAtLegFinishLarge = (await GM.getValue('showTotalDartsAtLegFinishLarge')) ?? false;
             soundAfterBotThrow = (await GM.getValue('soundAfterBotThrow')) ?? true;
 
-            pageContainer.classList.add('css-gmuwbf');
+            pageContainer.classList.add('adp_pageContainer');
             const configContainer = document.createElement('div');
-            configContainer.classList.add('css-10z204m');
+            configContainer.classList.add('adp_configContainer');
             pageContainer.appendChild(configContainer);
             pageContainer.style.display = 'none';
 
@@ -418,19 +437,21 @@
             document.getElementById('root').appendChild(pageContainer);
 
             //////////////// add menu  ////////////////////
-            const menuBtn = document.createElement('a');
-            menuBtn.classList.add('css-1nlwyv4');
+            document.getElementById('ad-ext-user-menu-extra').style.display = 'block';
+            const menuContainer = document.getElementById('ad-ext-user-menu-extra').parentElement.parentElement;
+            const menuBtn = document.getElementById('ad-ext-user-menu-extra').nextElementSibling;
             menuBtn.classList.add('adp_menu-btn');
-            menuBtn.innerText = 'Config';
-            menuBtn.style.cursor = 'pointer';
-            menuContainerEl.appendChild(menuBtn);
+            menuBtn.style.display = 'flex';
+            menuBtn.innerText = 'Pimp my AD';
 
-            [...document.querySelectorAll('.css-1nlwyv4')].forEach((el) => (el.addEventListener('click', async (event) => {
-                document.querySelector('#root > div:nth-of-type(2)').style.display = 'flex';
+            const matchHistoryBtn = [...headerEl.querySelectorAll('a')].filter(el => el.textContent.includes('Match History'))[0];
+
+            [...menuContainer.querySelectorAll('button, a')].forEach((el) => (el.addEventListener('click', async (event) => {
+                mainContainerEl.style.display = 'flex';
                 pageContainer.style.display = 'none';
                 if (event.target.classList.contains('adp_menu-btn')) {
-                    // switch to page "Matches History" because we need its CSS
-                    menuContainerEl.querySelector('a:nth-of-type(4)').click();
+                    // switch to page "Match History" because we need its CSS
+                    matchHistoryBtn.click();
                     window.history.pushState(null, '', configPathName);
                 }
 
@@ -445,8 +466,8 @@
 
     const handleConfigPage = () => {
         console.log('config ready');
-        document.querySelector('#root > div:nth-of-type(2)').style.display = 'none';
-        pageContainer.style.display = 'flex';
+        if (mainContainerEl) mainContainerEl.style.display = 'none';
+        if (pageContainer) pageContainer.style.display = 'flex';
     };
 
     const handlePlay = () => {
@@ -476,7 +497,8 @@
 
             const isX01 = matchVariant === 'X01';
             const isCricket = matchVariant === 'Cricket';
-            isValidMatchVariant = isX01 || isCricket;
+            // isValidMatchVariant = isX01 || isCricket;
+            isValidMatchVariant = isX01;
 
             if (!isValidMatchVariant) return;
 
