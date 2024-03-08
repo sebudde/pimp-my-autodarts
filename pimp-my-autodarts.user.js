@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.16.0
+// @version      0.17.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -102,26 +102,42 @@
         }
     };
 
-    navigation.addEventListener('navigate', (e) => {
-        let counter = 0;
-        const fakeObserver = setInterval(() => {
-            counter++;
-            rootContainer = getRootContainer();
-            mainContainerEl = getMainContainerEl();
-            if (mainContainerEl) {
-                showConfigPage(false);
-                // console.log('e', e);
-                // showConfigPage(e.detail.path === configPathName);
-                clearInterval(fakeObserver);
-                onDOMready();
-            } else if (counter > 100) {
-                if (mainContainerEl) mainContainerEl.style.display = 'flex';
-                if (configPageContainer) configPageContainer.style.display = 'none';
-                console.log('mainContainer not found', mainContainerEl);
-                clearInterval(fakeObserver);
+    window.onload = () => {
+        let oldHref = document.location.href;
+        const body = document.querySelector('body');
+        const observer = new MutationObserver(mutations => {
+            if (oldHref !== document.location.href) {
+                oldHref = document.location.href;
+
+                let counter = 0;
+                const fakeObserver = setInterval(async () => {
+                    counter++;
+                    rootContainer = getRootContainer();
+                    mainContainerEl = getMainContainerEl();
+                    if (mainContainerEl) {
+                        showConfigPage(false);
+                        clearInterval(fakeObserver);
+                        await onDOMready();
+                        const pathArr = document.location.pathname.split('/');
+                        if (pathArr[1] === 'matches' && pathArr[2].length) {
+                            console.log('match');
+                            handleMatch();
+                        }
+                    } else if (counter > 100) {
+                        if (mainContainerEl) mainContainerEl.style.display = 'flex';
+                        if (configPageContainer) configPageContainer.style.display = 'none';
+                        console.log('mainContainer not found', mainContainerEl);
+                        clearInterval(fakeObserver);
+                    }
+                }, 500);
+
             }
-        }, 500);
-    });
+        });
+        observer.observe(body, {
+            childList: true,
+            subtree: true
+        });
+    };
 
     const setActiveAttr = (el, isActive) => {
         if (isActive) {
@@ -258,19 +274,12 @@
     const onDOMready = async () => {
         mainContainerEl.classList.add('adp_maincontainer');
 
-        const pathArr = location.pathname.split('/');
-
         if (location.pathname === configPathName) {
             if (mainContainerEl) mainContainerEl.style.display = 'none';
             if (configPageContainer) configPageContainer.style.display = 'flex';
         } else {
             if (mainContainerEl) mainContainerEl.attributeStyleMap.delete('display');
             if (configPageContainer) configPageContainer.style.display = 'none';
-        }
-
-        if (pathArr[1] === 'matches' && pathArr[2].length) {
-            console.log('match');
-            handleMatch();
         }
 
         if (firstLoad) {
@@ -547,8 +556,10 @@
 
                 let cricketClosedPoints = [];
 
+                const cricketContainer = document.getElementById('ad-ext-turn').nextElementSibling;
+                console.log('cricketContainer', cricketContainer);
                 const setCricketClosedPoints = () => {
-                    const cricketPointTable = document.querySelector('.css-1gy113g').children[2];
+                    const cricketPointTable = document.getElementById('ad-ext-turn').nextElementSibling.children[2];
 
                     if (!cricketPointTable?.children) return;
                     cricketClosedPoints = [];
@@ -572,6 +583,8 @@
                 };
 
                 if (matchVariant === 'Cricket') {
+                    const cricketPointTable = document.getElementById('ad-ext-turn').nextElementSibling;
+
                     document.querySelector('.css-1gy113g').style.minHeight = 0;
                     if (isSmallDisplay) {
                         const cricketPointContainer = document.querySelector('.css-1gy113g .css-99py2g');
@@ -916,7 +929,6 @@
                     inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
 
                     if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
-                        console.log('jo');
                         activePlayerCard.classList.remove('adp_points-small');
                         [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
                     }
