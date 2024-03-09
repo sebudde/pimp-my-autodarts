@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.23
+// @version      0.25
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -49,6 +49,8 @@
     let showTotalDartsAtLegFinishLarge;
     let soundAfterBotThrow;
     //
+
+    let gsa = false;
 
     let firstLoad = true;
 
@@ -228,19 +230,75 @@
             opacity: 1;
             background: var(--chakra-colors-gray-500);
         }
+        .game-shot-animation {
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-shot-animation > div {
+            margin: 0;
+            padding-top: calc(var(--chakra-space-4) - 2px);
+            padding-bottom: calc(var(--chakra-space-4) - 2px);
+        }
+
+
+        .game-shot-animation > div:first-child {
+            background: linear-gradient(0deg, #000, #272727);
+        }
+
+        .game-shot-animation:before,
+        .game-shot-animation:after {
+              content: "";
+              position: absolute;
+              left: -2px;
+              top: -2px;
+              background: linear-gradient(
+                    45deg,
+                    #fb0094,
+                    #0000ff,
+                    #00ff00,
+                    #ffff00,
+                    #ff0000,
+                    #fb0094,
+                    #0000ff,
+                    #00ff00,
+                    #ffff00,
+                    #ff0000
+              );
+              background-size: 400%;
+              width: calc(100% + 4px);
+              height: calc(100% + 4px);
+              z-index: -1;
+              animation: steam 20s linear infinite;
+              border-radius: 5px;
+        }
+
+        @keyframes steam {
+          0% {
+            background-position: 0 0;
+          }
+          50% {
+            background-position: 400% 0;
+          }
+          100% {
+            background-position: 0 0;
+          }
+        }
+
+        .game-shot-animation:after {
+            filter: blur(50px);
+        }
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
     const onDOMready = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        gsa = urlParams.get('gsa') === '1';
+
         mainContainerEl = getMainContainerEl();
         mainContainerEl.classList.add('adp_maincontainer');
 
         rootContainer = getRootContainer();
-        // if (location.pathname === configPathName) {
-        //     showConfigPage(true);
-        // } else {
-        //     showConfigPage(false);
-        // }
 
         if (firstLoad) {
             firstLoad = false;
@@ -857,11 +915,6 @@
 
                             const winnerPlayerName = winnerPlayerCard.querySelector('.ad-ext-player-name').innerText;
 
-                            if (document.querySelector('.game-shot-animation .css-x3m75h')) {
-                                document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
-                                document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
-                            }
-
                             setTimeout(() => {
                                 const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
                                 buttons.forEach((button) => {
@@ -939,6 +992,25 @@
                             });
                         }
                     }
+                }
+
+                if (winnerPlayerCard && gsa) {
+                    const gameShotMessageEl = document.createElement('div');
+                    gameShotMessageEl.classList.add('game-shot-message');
+                    gameShotMessageEl.textContent = 'Game Shot!';
+                    gameShotMessageEl.style.fontSize = '0.5em';
+                    gameShotMessageEl.style.lineHeight = '1.2';
+
+                    winnerPlayerCard.querySelector('.ad-ext-player-score').style.maxHeight = '122px';
+                    winnerPlayerCard.querySelector('.ad-ext-player-score').style.textAlign = 'center';
+                    winnerPlayerCard.querySelector('.ad-ext-player-score').appendChild(gameShotMessageEl);
+
+                    winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.fontSize = '0.3em';
+                    winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.lineHeight = '1.2';
+
+                    winnerPlayerCard.classList.add('game-shot-animation');
+                    document.querySelector('.adp_maincontainer').style.overflow = 'unset';
+
                 }
             };
 
