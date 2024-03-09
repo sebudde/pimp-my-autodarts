@@ -30,6 +30,7 @@
     let playerContainerInfoElArr;
     let playerContainerStatsElArr;
     let playerCount;
+    let matchHistoryBtnClicked = false;
 
     let activePlayerCardPointsEl;
     let inactivePlayerCardPointsElArr = [];
@@ -51,7 +52,13 @@
     //
 
     let firstLoad = true;
-    let firstMatchLoad = true;
+
+    const readyClasses = {
+        play: 'css-14trzk1', // lobbies: 'css-1q0rlnk',
+        // table: 'css-p3eaf1', // matches & boards
+        match: 'css-ul22ge',
+        matchHistory: 'css-5bhccf'
+    };
 
     const configPathName = '/config';
     const configPageContainer = document.createElement('div');
@@ -84,13 +91,11 @@
     })();
 
     const showConfigPage = (show) => {
-        if (show) {
-            if (mainContainerEl) mainContainerEl.style.display = 'none';
-            if (configPageContainer) configPageContainer.style.display = 'flex';
-        } else {
-            if (mainContainerEl) mainContainerEl.attributeStyleMap.delete('display');
-            if (configPageContainer) configPageContainer.style.display = 'none';
-        }
+        setTimeout(() => {
+            matchHistoryBtnClicked = false;
+        }, 1000);
+        if (mainContainerEl) mainContainerEl.classList.toggle('adp_hide', show);
+        if (configPageContainer) configPageContainer.classList.toggle('adp_hide', !show);
     };
 
     const showHeader = (show) => {
@@ -102,45 +107,6 @@
         } else {
             headerEl.style.display = 'none';
         }
-    };
-
-    window.onload = () => {
-        let oldHref = document.location.href;
-        const body = document.querySelector('body');
-        const observer = new MutationObserver(mutations => {
-            if (oldHref !== document.location.href) {
-                oldHref = document.location.href;
-
-                let counter = 0;
-                const fakeObserver = setInterval(async () => {
-                    counter++;
-                    rootContainer = getRootContainer();
-                    mainContainerEl = getMainContainerEl();
-                    if (mainContainerEl) {
-                        showConfigPage(false);
-                        clearInterval(fakeObserver);
-                        await onDOMready();
-                        const pathArr = document.location.pathname.split('/');
-                        if (pathArr[1] === 'matches' && pathArr[2].length) {
-                            console.log('match');
-                            handleMatch();
-                        } else {
-                            firstMatchLoad = true;
-                        }
-                    } else if (counter > 100) {
-                        if (mainContainerEl) mainContainerEl.style.display = 'flex';
-                        if (configPageContainer) configPageContainer.style.display = 'none';
-                        console.log('mainContainer not found', mainContainerEl);
-                        clearInterval(fakeObserver);
-                    }
-                }, 500);
-
-            }
-        });
-        observer.observe(body, {
-            childList: true,
-            subtree: true
-        });
     };
 
     const setActiveAttr = (el, isActive) => {
@@ -256,6 +222,9 @@
             width: 100%;
             max-width: 1366px;
         }
+        .adp_hide {
+            display: none;
+        }
         .adp_config-row {
             flex-direction: row;
             display: flex;
@@ -276,15 +245,15 @@
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
     const onDOMready = async () => {
+        mainContainerEl = getMainContainerEl();
         mainContainerEl.classList.add('adp_maincontainer');
 
-        if (location.pathname === configPathName) {
-            if (mainContainerEl) mainContainerEl.style.display = 'none';
-            if (configPageContainer) configPageContainer.style.display = 'flex';
-        } else {
-            if (mainContainerEl) mainContainerEl.attributeStyleMap.delete('display');
-            if (configPageContainer) configPageContainer.style.display = 'none';
-        }
+        rootContainer = getRootContainer();
+        // if (location.pathname === configPathName) {
+        //     showConfigPage(true);
+        // } else {
+        //     showConfigPage(false);
+        // }
 
         if (firstLoad) {
             firstLoad = false;
@@ -341,7 +310,7 @@
             const configContainer = document.createElement('div');
             configContainer.classList.add('adp_configContainer');
             configPageContainer.appendChild(configContainer);
-            configPageContainer.style.display = 'none';
+            configPageContainer.classList.add('adp_hide');
 
             const configHeader = document.createElement('h2');
             configHeader.classList.add('adp_config-header');
@@ -502,12 +471,17 @@
             menuBtn.innerText = 'Pimp my AD';
 
             const matchHistoryBtn = [...headerEl.querySelectorAll('a')].filter(el => el.href.includes('history/matches'))[0];
+            [...headerEl.querySelectorAll('button, a')].forEach((el) => (el.addEventListener('click', async (event) => {
+                if (matchHistoryBtnClicked) return;
 
-            [...menuContainer.querySelectorAll('button, a')].forEach((el) => (el.addEventListener('click', async (event) => {
                 if (event.target.classList.contains('adp_menu-btn')) {
+                    showConfigPage(true);
+                    matchHistoryBtnClicked = true;
                     // switch to page "Match History" because we need its CSS
                     matchHistoryBtn.click();
                     window.history.pushState(null, '', configPathName);
+                } else {
+                    showConfigPage(false);
                 }
 
             }, false)));
@@ -518,477 +492,499 @@
     };
 
     const handleMatch = () => {
-        if (firstMatchLoad) {
-            firstMatchLoad = false;
-            setTimeout(async () => {
-                console.log('match ready!');
+        setTimeout(async () => {
+            console.log('match ready!');
 
-                matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
-                if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
+            matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
+            if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
 
-                // TODO: Timo - unique ID for getting matchVariant
-                const menuRow = mainContainerEl.querySelector('ul ul');
-                matchVariantEl = menuRow.querySelector('span');
-                matchVariant = matchVariantEl.innerText.split(' ')[0];
+            // TODO: Timo - unique ID for getting matchVariant
+            const menuRow = mainContainerEl.querySelector('ul ul');
+            matchVariantEl = menuRow.querySelector('span');
+            matchVariant = matchVariantEl.innerText.split(' ')[0];
 
-                const isX01 = matchVariant === 'X01';
-                const isCricket = matchVariant === 'Cricket';
-                isValidMatchVariant = isX01 || isCricket;
-                // isValidMatchVariant = isX01;
+            const isX01 = matchVariant === 'X01';
+            const isCricket = matchVariant === 'Cricket';
+            isValidMatchVariant = isX01 || isCricket;
+            // isValidMatchVariant = isX01;
 
-                if (!isValidMatchVariant) return;
+            if (!isValidMatchVariant) return;
 
-                playerContainerEl = document.getElementById('ad-ext-player-display');
+            playerContainerEl = document.getElementById('ad-ext-player-display');
 
-                playerCount = playerContainerEl.children.length;
+            playerCount = playerContainerEl.children.length;
 
-                playerContainerInfoElArr = [...playerContainerEl.children].map((el) => el.children[0]);
-                playerContainerStatsElArr = [...playerContainerEl.children].map((el) => el.children[1]);
+            playerContainerInfoElArr = [...playerContainerEl.children].map((el) => el.children[0]);
+            playerContainerStatsElArr = [...playerContainerEl.children].map((el) => el.children[1]);
 
-                turnContainerEl = document.getElementById('ad-ext-turn');
+            turnContainerEl = document.getElementById('ad-ext-turn');
 
-                // add match menu
-                matchMenuRow = document.createElement('div');
-                matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
-                matchMenuRow.style.display = 'flex';
-                matchMenuRow.style.flexWrap = 'wrap';
-                matchMenuRow.style.gap = '0.5rem';
-                matchMenuRow.style.padding = '0px';
+            // add match menu
+            matchMenuRow = document.createElement('div');
+            matchMenuRow.style.marginTop = 'calc(var(--chakra-space-2) * -1 - 4px)';
+            matchMenuRow.style.display = 'flex';
+            matchMenuRow.style.flexWrap = 'wrap';
+            matchMenuRow.style.gap = '0.5rem';
+            matchMenuRow.style.padding = '0px';
 
-                matchMenuContainer.replaceChildren(matchMenuRow);
+            matchMenuContainer.replaceChildren(matchMenuRow);
 
-                // PR font-size larger
-                playerContainerStatsElArr.forEach((el) => (el.querySelectorAll('p')[1].style.fontSize = 'var(--chakra-fontSizes-xl)'));
+            // PR font-size larger
+            playerContainerStatsElArr.forEach((el) => (el.querySelectorAll('p')[1].style.fontSize = 'var(--chakra-fontSizes-xl)'));
 
-                let cricketClosedPoints = [];
+            let cricketClosedPoints = [];
 
-                const cricketContainer = document.getElementById('ad-ext-turn').nextElementSibling;
+            const cricketContainer = document.getElementById('ad-ext-turn').nextElementSibling;
 
-                const setCricketClosedPoints = () => {
-                    const cricketPointTable = cricketContainer.children[2];
+            const setCricketClosedPoints = () => {
+                const cricketPointTable = cricketContainer.children[2];
 
-                    if (!cricketPointTable?.children) return;
-                    cricketClosedPoints = [];
+                if (!cricketPointTable?.children) return;
+                cricketClosedPoints = [];
 
-                    [...cricketPointTable.children].forEach((el, i) => {
-                        if (i % playerCount === 0) {
-                            const rowCount = (i / playerCount) + 1;
-                            const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
-                            if (el.querySelector('.css-cogxfh')) {
-                                cricketClosedPoints.push(rowPoints);
-                            }
-
-                            if (!el.children.length) {
-                                const numberHolder = document.createElement('p');
-                                numberHolder.classList.add('adp_cricket-rownumber');
-                                numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
-                                el.appendChild(numberHolder);
-                            }
+                [...cricketPointTable.children].forEach((el, i) => {
+                    if (i % playerCount === 0) {
+                        const rowCount = (i / playerCount) + 1;
+                        const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
+                        if (el.querySelector('.css-cogxfh')) {
+                            cricketClosedPoints.push(rowPoints);
                         }
-                    });
-                };
 
-                if (matchVariant === 'Cricket') {
-                    cricketContainer.style.minHeight = '0';
-                    playerContainerEl.style.height = '100%';
-                    playerContainerEl.childNodes.forEach((el) => {
-                        el.style.height = '100%';
-                    });
-                    // [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
-                    //     el.parentElement.style.height = '100%';
-                    //     el.parentElement.style.padding = '6px 0';
-                    //     el.style.lineHeight = '0';
-                    //     el.style.margin = 'auto';
-                    //     el.nextElementSibling.querySelector('div > span').style.fontSize = '1.5rem';
-                    // });
-                    //
-                    // if (isSmallDisplay) {
-                    //     cricketContainer.children[0].style.minHeight = '195px';
-                    //     [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
-                    //         el.style.fontSize = '70pt';
-                    //     });
-                    // }
-
-                    setCricketClosedPoints();
-
-                    const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
-                    buttons.forEach((button) => {
-                        if (button.innerText === 'Undo') {
-                            button.addEventListener('click', async (event) => {
-                                setCricketClosedPoints();
-                            }, false);
+                        if (!el.children.length) {
+                            const numberHolder = document.createElement('p');
+                            numberHolder.classList.add('adp_cricket-rownumber');
+                            numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
+                            el.appendChild(numberHolder);
                         }
-                    });
-                }
-
-                // sounds
-                let callerActive = (await GM.getValue('callerActive')) || '0';
-                let triplesound = (await GM.getValue('triplesound')) || '0';
-                let boosound = (await GM.getValue('boosound')) || false;
-                let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
-
-                const onSelectChange = (event) => {
-                    (async () => {
-                        eval(event.target.id + ' = event.target.value');
-                        await GM.setValue(event.target.id, event.target.value);
-                    })();
-                };
-
-                const tripleSoundArr = [
-                    {
-                        value: '0',
-                        name: 'Triple OFF'
-                    }, {
-                        value: '1',
-                        name: 'Beep'
-                    }, {
-                        value: '2',
-                        name: 'Löwen'
-                    }];
-
-                const nextLegSecArr = [
-                    {
-                        value: 'OFF'
-                    }, {
-                        value: '0'
-                    }, {
-                        value: '5'
-                    }, {
-                        value: '10'
-                    }, {
-                        value: '20'
-                    }];
-
-                const callerSelect = document.createElement('select');
-                callerSelect.id = 'callerActive';
-                callerSelect.classList.add('css-1xbroe7');
-                callerSelect.style.padding = '0 5px';
-                callerSelect.onchange = onSelectChange;
-
-                matchMenuRow.appendChild(callerSelect);
-
-                for (const [caller, data] of Object.entries(callerData)) {
-                    if (!data.folder) continue;
-                    const optionEl = document.createElement('option');
-                    optionEl.value = caller;
-                    optionEl.text = data.name || data.folder;
-                    optionEl.style.backgroundColor = '#353d47';
-                    if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
-                    callerSelect.appendChild(optionEl);
-                }
-
-                const tripleSoundSelect = document.createElement('select');
-                tripleSoundSelect.id = 'triplesound';
-                tripleSoundSelect.classList.add('css-1xbroe7');
-                tripleSoundSelect.style.padding = '0 5px';
-                tripleSoundSelect.onchange = onSelectChange;
-
-                matchMenuRow.appendChild(tripleSoundSelect);
-
-                tripleSoundArr.forEach((triple) => {
-                    const optionEl = document.createElement('option');
-                    optionEl.value = triple.value;
-                    optionEl.text = triple.name;
-                    optionEl.style.backgroundColor = '#353d47';
-                    if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
-                    tripleSoundSelect.appendChild(optionEl);
+                    }
                 });
+            };
 
-                const booBtn = document.createElement('button');
-                booBtn.id = 'boosound';
-                booBtn.innerText = 'BOO';
-                booBtn.classList.add('adp_config-btn');
-                setActiveAttr(booBtn, boosound);
-                matchMenuRow.appendChild(booBtn);
+            if (matchVariant === 'Cricket') {
+                cricketContainer.style.minHeight = '0';
+                playerContainerEl.style.height = '100%';
+                playerContainerEl.childNodes.forEach((el) => {
+                    el.style.height = '100%';
+                });
+                // [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
+                //     el.parentElement.style.height = '100%';
+                //     el.parentElement.style.padding = '6px 0';
+                //     el.style.lineHeight = '0';
+                //     el.style.margin = 'auto';
+                //     el.nextElementSibling.querySelector('div > span').style.fontSize = '1.5rem';
+                // });
+                //
+                // if (isSmallDisplay) {
+                //     cricketContainer.children[0].style.minHeight = '195px';
+                //     [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
+                //         el.style.fontSize = '70pt';
+                //     });
+                // }
 
-                booBtn.addEventListener('click', async (event) => {
-                    const isActive = event.target.hasAttribute('data-active');
-                    setActiveAttr(booBtn, !isActive);
-                    boosound = !isActive;
-                    await GM.setValue('boosound', !isActive);
+                setCricketClosedPoints();
+
+                const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
+                buttons.forEach((button) => {
+                    if (button.innerText === 'Undo') {
+                        button.addEventListener('click', async (event) => {
+                            setCricketClosedPoints();
+                        }, false);
+                    }
+                });
+            }
+
+            // sounds
+            let callerActive = (await GM.getValue('callerActive')) || '0';
+            let triplesound = (await GM.getValue('triplesound')) || '0';
+            let boosound = (await GM.getValue('boosound')) || false;
+            let nextLegAfterSec = (await GM.getValue('nextLegAfterSec')) || 'OFF';
+
+            const onSelectChange = (event) => {
+                (async () => {
+                    eval(event.target.id + ' = event.target.value');
+                    await GM.setValue(event.target.id, event.target.value);
+                })();
+            };
+
+            const tripleSoundArr = [
+                {
+                    value: '0',
+                    name: 'Triple OFF'
+                }, {
+                    value: '1',
+                    name: 'Beep'
+                }, {
+                    value: '2',
+                    name: 'Löwen'
+                }];
+
+            const nextLegSecArr = [
+                {
+                    value: 'OFF'
+                }, {
+                    value: '0'
+                }, {
+                    value: '5'
+                }, {
+                    value: '10'
+                }, {
+                    value: '20'
+                }];
+
+            const callerSelect = document.createElement('select');
+            callerSelect.id = 'callerActive';
+            callerSelect.classList.add('css-1xbroe7');
+            callerSelect.style.padding = '0 5px';
+            callerSelect.onchange = onSelectChange;
+
+            matchMenuRow.appendChild(callerSelect);
+
+            for (const [caller, data] of Object.entries(callerData)) {
+                if (!data.folder) continue;
+                const optionEl = document.createElement('option');
+                optionEl.value = caller;
+                optionEl.text = data.name || data.folder;
+                optionEl.style.backgroundColor = '#353d47';
+                if (callerActive === caller) optionEl.setAttribute('selected', 'selected');
+                callerSelect.appendChild(optionEl);
+            }
+
+            const tripleSoundSelect = document.createElement('select');
+            tripleSoundSelect.id = 'triplesound';
+            tripleSoundSelect.classList.add('css-1xbroe7');
+            tripleSoundSelect.style.padding = '0 5px';
+            tripleSoundSelect.onchange = onSelectChange;
+
+            matchMenuRow.appendChild(tripleSoundSelect);
+
+            tripleSoundArr.forEach((triple) => {
+                const optionEl = document.createElement('option');
+                optionEl.value = triple.value;
+                optionEl.text = triple.name;
+                optionEl.style.backgroundColor = '#353d47';
+                if (triplesound === triple.value) optionEl.setAttribute('selected', 'selected');
+                tripleSoundSelect.appendChild(optionEl);
+            });
+
+            const booBtn = document.createElement('button');
+            booBtn.id = 'boosound';
+            booBtn.innerText = 'BOO';
+            booBtn.classList.add('adp_config-btn');
+            setActiveAttr(booBtn, boosound);
+            matchMenuRow.appendChild(booBtn);
+
+            booBtn.addEventListener('click', async (event) => {
+                const isActive = event.target.hasAttribute('data-active');
+                setActiveAttr(booBtn, !isActive);
+                boosound = !isActive;
+                await GM.setValue('boosound', !isActive);
+            }, false);
+
+            const nextLegSecSelect = document.createElement('select');
+            nextLegSecSelect.id = 'nextLegAfterSec';
+            nextLegSecSelect.classList.add('css-1xbroe7');
+            nextLegSecSelect.style.padding = '0 5px';
+            nextLegSecSelect.onchange = onSelectChange;
+
+            matchMenuRow.appendChild(nextLegSecSelect);
+
+            nextLegSecArr.forEach((sec) => {
+                const optionEl = document.createElement('option');
+                optionEl.value = sec.value;
+                optionEl.text = `Next Leg ${sec.value}${sec.value === 'OFF' ? '' : ' sec'}`;
+                optionEl.style.backgroundColor = '#353d47';
+                if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
+                nextLegSecSelect.appendChild(optionEl);
+            });
+
+            // ######### start iOS fix #########
+            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+
+            if (isiOS) {
+                const startBtnContainer = document.createElement('div');
+                startBtnContainer.style.position = 'absolute';
+                startBtnContainer.style.height = '100%';
+                startBtnContainer.style.width = '100%';
+                startBtnContainer.style.top = '0';
+                startBtnContainer.style.left = '0';
+                startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                startBtnContainer.style.display = 'flex';
+                startBtnContainer.style.justifyContent = 'center';
+                startBtnContainer.style.alignItems = 'center';
+
+                document.querySelector('#root').appendChild(startBtnContainer);
+
+                const startBtn = document.createElement('button');
+                startBtn.id = 'startBtn';
+                startBtn.innerText = 'START';
+                startBtn.classList.add('css-1xbmrf2');
+                startBtn.style.background = '#ffffff';
+                startBtn.style.color = '#646464';
+                startBtn.style.fontSize = '36px';
+                startBtn.style.padding = '36px 24px';
+                startBtnContainer.appendChild(startBtn);
+
+                startBtn.addEventListener('click', async (event) => {
+                    soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                    startBtnContainer.remove();
                 }, false);
 
-                const nextLegSecSelect = document.createElement('select');
-                nextLegSecSelect.id = 'nextLegAfterSec';
-                nextLegSecSelect.classList.add('css-1xbroe7');
-                nextLegSecSelect.style.padding = '0 5px';
-                nextLegSecSelect.onchange = onSelectChange;
+                // ######### end iOS fix #########
+            }
 
-                matchMenuRow.appendChild(nextLegSecSelect);
+            // iOS fix
+            // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+            const soundEffect1 = new Audio();
+            soundEffect1.autoplay = true;
+            const soundEffect2 = new Audio();
+            soundEffect2.autoplay = true;
+            const soundEffect3 = new Audio();
+            soundEffect3.autoplay = true;
 
-                nextLegSecArr.forEach((sec) => {
-                    const optionEl = document.createElement('option');
-                    optionEl.value = sec.value;
-                    optionEl.text = `Next Leg ${sec.value}${sec.value === 'OFF' ? '' : ' sec'}`;
-                    optionEl.style.backgroundColor = '#353d47';
-                    if (nextLegAfterSec === sec.value) optionEl.setAttribute('selected', 'selected');
-                    nextLegSecSelect.appendChild(optionEl);
-                });
+            function playSound1(fileName) {
+                if (!fileName) return;
+                // console.log('fileName1', fileName);
+                soundEffect1.src = fileName;
+            }
 
-                // ######### start iOS fix #########
-                // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+            function playSound2(fileName) {
+                if (!fileName) return;
+                // console.log('fileName2', fileName);
+                soundEffect2.src = fileName;
+            }
 
-                if (isiOS) {
-                    const startBtnContainer = document.createElement('div');
-                    startBtnContainer.style.position = 'absolute';
-                    startBtnContainer.style.height = '100%';
-                    startBtnContainer.style.width = '100%';
-                    startBtnContainer.style.top = '0';
-                    startBtnContainer.style.left = '0';
-                    startBtnContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                    startBtnContainer.style.display = 'flex';
-                    startBtnContainer.style.justifyContent = 'center';
-                    startBtnContainer.style.alignItems = 'center';
+            function playSound3(fileName) {
+                if (!fileName) return;
+                // console.log('fileName3', fileName);
+                soundEffect3.src = fileName;
+            }
 
-                    document.querySelector('#root').appendChild(startBtnContainer);
+            const caller = async () => {
+                const soundServerUrl = 'https://autodarts-plus.x10.mx';
 
-                    const startBtn = document.createElement('button');
-                    startBtn.id = 'startBtn';
-                    startBtn.innerText = 'START';
-                    startBtn.classList.add('css-1xbmrf2');
-                    startBtn.style.background = '#ffffff';
-                    startBtn.style.color = '#646464';
-                    startBtn.style.fontSize = '36px';
-                    startBtn.style.padding = '36px 24px';
-                    startBtnContainer.appendChild(startBtn);
+                const callerFolder = callerData[callerActive]?.folder || '';
+                const callerServerUrl = callerData[callerActive]?.server || '';
+                const fileExt = callerData[callerActive]?.fileExt || '.mp3';
 
-                    startBtn.addEventListener('click', async (event) => {
-                        soundEffect1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-                        startBtnContainer.remove();
-                    }, false);
+                // const turnPointsEl = turnContainerEl.children[0];
+                const turnPoints = document.querySelector('.ad-ext-turn-points').innerText.trim();
+                // TODO: Timo - class only for thrown darts
+                // const throwPointsArr = [...turnContainerEl.querySelectorAll('.ad-ext-turn-throw')].map((el) => el.innerText);
+                const throwPointsArr = [...turnContainerEl.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
 
-                    // ######### end iOS fix #########
-                }
+                const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
-                // iOS fix
-                // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
-                const soundEffect1 = new Audio();
-                soundEffect1.autoplay = true;
-                const soundEffect2 = new Audio();
-                soundEffect2.autoplay = true;
-                const soundEffect3 = new Audio();
-                soundEffect3.autoplay = true;
+                const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
+                const playerName = playerEl && playerEl.innerText;
 
-                function playSound1(fileName) {
-                    if (!fileName) return;
-                    // console.log('fileName1', fileName);
-                    soundEffect1.src = fileName;
-                }
-
-                function playSound2(fileName) {
-                    if (!fileName) return;
-                    // console.log('fileName2', fileName);
-                    soundEffect2.src = fileName;
-                }
-
-                function playSound3(fileName) {
-                    if (!fileName) return;
-                    // console.log('fileName3', fileName);
-                    soundEffect3.src = fileName;
-                }
-
-                const caller = async () => {
-                    const soundServerUrl = 'https://autodarts-plus.x10.mx';
-
-                    const callerFolder = callerData[callerActive]?.folder || '';
-                    const callerServerUrl = callerData[callerActive]?.server || '';
-                    const fileExt = callerData[callerActive]?.fileExt || '.mp3';
-
-                    // const turnPointsEl = turnContainerEl.children[0];
-                    const turnPoints = document.querySelector('.ad-ext-turn-points').innerText.trim();
-                    // TODO: Timo - class only for thrown darts
-                    // const throwPointsArr = [...turnContainerEl.querySelectorAll('.ad-ext-turn-throw')].map((el) => el.innerText);
-                    const throwPointsArr = [...turnContainerEl.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
-
-                    const curThrowPointsName = throwPointsArr.slice(-1)[0];
-
-                    const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
-                    const playerName = playerEl && playerEl.innerText;
-
-                    const playPointsSound = () => {
-                        if (callerFolder.startsWith('google')) {
-                            playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
-                        } else {
-                            if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
-                        }
-                    };
-
-                    let curThrowPointsNumber = -1;
-                    let curThrowPointsBed = '';
-                    let curThrowPointsMultiplier = 1;
-
-                    if (curThrowPointsName) {
-                        if (curThrowPointsName.startsWith('M')) {
-                            curThrowPointsNumber = 0;
-                            curThrowPointsBed = 'Outside';
-                        } else if (curThrowPointsName === 'Bull') {
-                            curThrowPointsNumber = 25;
-                            curThrowPointsBed = 'D';
-                        } else if (curThrowPointsName === '25') {
-                            curThrowPointsNumber = 25;
-                            curThrowPointsBed = 'S';
-                        } else {
-                            curThrowPointsNumber = curThrowPointsName.slice(1);
-                            curThrowPointsBed = curThrowPointsName.charAt(0);
-                        }
-
-                        if (curThrowPointsBed === 'D') curThrowPointsMultiplier = 2;
-                        if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
+                const playPointsSound = () => {
+                    if (callerFolder.startsWith('google')) {
+                        playSound1('https://autodarts.de.cool/mp3_helper.php?language=' + callerFolder.substring(7, 9) + '&text=' + turnPoints);
+                    } else {
+                        if (callerFolder.length && callerServerUrl.length) playSound1(callerServerUrl + '/' + callerFolder + '/' + turnPoints + '.mp3');
                     }
-
-                    const isBot = curThrowPointsName?.length && playerName && playerName.startsWith('BOT LEVEL');
-                    if (soundAfterBotThrow && isBot) {
-                        if (curThrowPointsBed === 'Outside') {
-                            playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
-                        } else {
-                            playSound3(soundServerUrl + '/' + 'sound_chopping-wood.mp3');
-                        }
-                    }
-
-                    setTimeout(() => {
-                        if (turnPoints === 'BUST') {
-                            if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
-                        } else {
-                            if (curThrowPointsName === 'BULL') {
-                                if (triplesound === '1') {
-                                    playSound2(soundServerUrl + '/' + 'beep_1.mp3');
-                                }
-                                if (triplesound === '2') {
-                                    playSound2(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
-                                }
-                            } else if (curThrowPointsBed === 'Outside') {
-                                if (boosound === true) {
-                                    const randomMissCount = Math.floor(Math.random() * 3) + 1;
-                                    playSound2(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
-                                }
-                            } else {
-                                if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
-                                    if (curThrowPointsMultiplier === 3) {
-                                        if (triplesound === '1') {
-                                            playSound2(soundServerUrl + '/' + 'beep_1.mp3');
-                                        }
-                                        if (triplesound === '2' && curThrowPointsNumber >= 17) {
-                                            playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
-                                        }
-                                    }
-                                }
-                            }
-                            //////////////// Cricket ////////////////////
-                            if (matchVariant === 'Cricket') {
-                                if (curThrowPointsNumber >= 0) {
-                                    if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
-                                        setCricketClosedPoints();
-                                        playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
-                                    } else {
-                                        playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
-                                    }
-                                }
-                            }
-                            //////////////// play Sound ////////////////////
-                            if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
-                                if (throwPointsArr.length === 3 && callerFolder.length) {
-                                    playPointsSound();
-                                }
-                            }
-                            //////////////// ATC ////////////////////
-
-                            ////////////////  ////////////////////
-
-                            if (winnerPlayerCard) {
-                                const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
-                                const winnerPlayerName = winnerPlayerCard.firstChild.lastChild.querySelector('span')?.innerText;
-
-                                if (document.querySelector('.game-shot-animation .css-x3m75h')) {
-                                    document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
-                                    document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
-                                }
-
-                                setTimeout(() => {
-                                    const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
-                                    buttons.forEach((button) => {
-                                        // --- Leg finished ---
-                                        if (button.innerText === 'Next Leg') {
-                                            if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
-                                        }
-                                        // --- Match finished ---
-                                        if (button.innerText === 'Finish') {
-                                            console.log('finish');
-                                            if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
-                                            setTimeout(() => {
-                                                const winnerSoundDataValues = Object.values(winnerSoundData);
-                                                const winnerSoundurl = winnerSoundDataValues.find(
-                                                    winnersound => winnersound?.playername?.toLowerCase() === winnerPlayerName?.toLowerCase())?.soundurl;
-                                                const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
-                                                console.log('winnerSoundurl', winnerSoundurl);
-                                                console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
-                                                playSound2(winnerSoundurl || winnerFallbackSoundurl);
-
-                                            }, 1000);
-                                        }
-                                    });
-                                }, waitForSumCalling);
-                            }
-                        }
-                    }, isBot ? 1000 : 0);
                 };
 
-                const onCounterChange = async () => {
+                let curThrowPointsNumber = -1;
+                let curThrowPointsBed = '';
+                let curThrowPointsMultiplier = 1;
 
-                    activePlayerCardPointsEl = document.querySelector('.ad-ext-player-active .ad-ext-player-score');
-                    inactivePlayerCardPointsElArr = [...document.querySelectorAll('.ad-ext-player-inactive .ad-ext-player-score')];
-                    winnerPlayerCard = document.querySelector('.ad-ext-player-winner');
-
-                    caller();
-
-                    inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
-
-                    if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
-                        activePlayerCardPointsEl.classList.remove('adp_points-small');
-                        [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
+                if (curThrowPointsName) {
+                    if (curThrowPointsName.startsWith('M')) {
+                        curThrowPointsNumber = 0;
+                        curThrowPointsBed = 'Outside';
+                    } else if (curThrowPointsName === 'Bull') {
+                        curThrowPointsNumber = 25;
+                        curThrowPointsBed = 'D';
+                    } else if (curThrowPointsName === '25') {
+                        curThrowPointsNumber = 25;
+                        curThrowPointsBed = 'S';
+                    } else {
+                        curThrowPointsNumber = curThrowPointsName.slice(1);
+                        curThrowPointsBed = curThrowPointsName.charAt(0);
                     }
 
-                    if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
+                    if (curThrowPointsBed === 'D') curThrowPointsMultiplier = 2;
+                    if (curThrowPointsBed === 'T') curThrowPointsMultiplier = 3;
+                }
+
+                const isBot = curThrowPointsName?.length && playerName && playerName.startsWith('BOT LEVEL');
+                if (soundAfterBotThrow && isBot) {
+                    if (curThrowPointsBed === 'Outside') {
+                        playSound3(soundServerUrl + '/' + 'sound_wood-block.mp3');
+                    } else {
+                        playSound3(soundServerUrl + '/' + 'sound_chopping-wood.mp3');
+                    }
+                }
+
+                setTimeout(() => {
+                    if (turnPoints === 'BUST') {
+                        if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
+                    } else {
+                        if (curThrowPointsName === 'BULL') {
+                            if (triplesound === '1') {
+                                playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                            }
+                            if (triplesound === '2') {
+                                playSound2(soundServerUrl + '/' + 'beep_2_bullseye.mp3');
+                            }
+                        } else if (curThrowPointsBed === 'Outside') {
+                            if (boosound === true) {
+                                const randomMissCount = Math.floor(Math.random() * 3) + 1;
+                                playSound2(soundServerUrl + '/' + 'miss_' + randomMissCount + '.mp3');
+                            }
+                        } else {
+                            if (matchVariant === 'X01' || (matchVariant === 'Cricket' && curThrowPointsNumber >= 15)) {
+                                if (curThrowPointsMultiplier === 3) {
+                                    if (triplesound === '1') {
+                                        playSound2(soundServerUrl + '/' + 'beep_1.mp3');
+                                    }
+                                    if (triplesound === '2' && curThrowPointsNumber >= 17) {
+                                        playSound2(soundServerUrl + '/' + 'beep_2_' + curThrowPointsNumber + '.wav');
+                                    }
+                                }
+                            }
+                        }
+                        //////////////// Cricket ////////////////////
+                        if (matchVariant === 'Cricket') {
+                            if (curThrowPointsNumber >= 0) {
+                                if (curThrowPointsNumber >= 15 && !cricketClosedPoints.includes(curThrowPointsNumber)) {
+                                    setCricketClosedPoints();
+                                    playSound2(soundServerUrl + '/' + 'bonus-points.mp3');
+                                } else {
+                                    playSound2(soundServerUrl + '/' + 'sound_double_windart.wav');
+                                }
+                            }
+                        }
+                        //////////////// play Sound ////////////////////
+                        if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
+                            if (throwPointsArr.length === 3 && callerFolder.length) {
+                                playPointsSound();
+                            }
+                        }
+                        //////////////// ATC ////////////////////
+
+                        ////////////////  ////////////////////
 
                         if (winnerPlayerCard) {
-                            // --- Leg finished ---
-                            console.log('Leg finished');
+                            const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
+                            const winnerPlayerName = winnerPlayerCard.firstChild.lastChild.querySelector('span')?.innerText;
 
-                            if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
-
-                                const winnerStats = winnerPlayerCard.nextElementSibling;
-                                const winnerDartsText = winnerStats.innerText;
-
-                                const winnerDarts = winnerDartsText.slice(winnerDartsText.indexOf('#') + 1, winnerDartsText.indexOf('|') - 1).trim();
-
-                                const winnerDartsEl = document.createElement('div');
-                                winnerDartsEl.style.fontSize = '0.5em';
-                                // if (!showTotalDartsAtLegFinishLarge) winnerDartsEl.style.fontSize = '0.5em';
-                                winnerDartsEl.innerHTML = winnerDarts + ' Darts';
-
-                                winnerPlayerCard.querySelector('.ad-ext-player-score').replaceChildren(winnerDartsEl);
+                            if (document.querySelector('.game-shot-animation .css-x3m75h')) {
+                                document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
+                                document.querySelector('.game-shot-animation .css-x3m75h').style.marginTop = '0.5rem';
                             }
 
-                            if (nextLegAfterSec !== 'OFF') {
-                                const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
+                            setTimeout(() => {
+                                const buttons = [...document.querySelectorAll('button.css-1x1xjw8, button.css-1vfwxw0')];
                                 buttons.forEach((button) => {
+                                    // --- Leg finished ---
                                     if (button.innerText === 'Next Leg') {
-                                        if (!parseInt(nextLegAfterSec)) return;
+                                        if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot.mp3');
+                                    }
+                                    // --- Match finished ---
+                                    if (button.innerText === 'Finish') {
+                                        console.log('finish');
+                                        if (callerFolder.length && callerServerUrl.length) playSound3(callerServerUrl + '/' + callerFolder + '/' + 'gameshot and the match.mp3');
                                         setTimeout(() => {
-                                            button.click();
-                                        }, parseInt(nextLegAfterSec) * 1000);
+                                            const winnerSoundDataValues = Object.values(winnerSoundData);
+                                            const winnerSoundurl = winnerSoundDataValues.find(
+                                                winnersound => winnersound?.playername?.toLowerCase() === winnerPlayerName?.toLowerCase())?.soundurl;
+                                            const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
+                                            console.log('winnerSoundurl', winnerSoundurl);
+                                            console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
+                                            playSound2(winnerSoundurl || winnerFallbackSoundurl);
+
+                                        }, 1000);
                                     }
                                 });
-                            }
+                            }, waitForSumCalling);
                         }
                     }
-                };
+                }, isBot ? 1000 : 0);
+            };
 
+            const onCounterChange = async () => {
+
+                activePlayerCardPointsEl = document.querySelector('.ad-ext-player-active .ad-ext-player-score');
+                inactivePlayerCardPointsElArr = [...document.querySelectorAll('.ad-ext-player-inactive .ad-ext-player-score')];
+                winnerPlayerCard = document.querySelector('.ad-ext-player-winner');
+
+                caller();
+
+                inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
+
+                if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
+                    activePlayerCardPointsEl.classList.remove('adp_points-small');
+                    [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
+                }
+
+                if (showTotalDartsAtLegFinish || nextLegAfterSec !== 'OFF') {
+
+                    if (winnerPlayerCard) {
+                        // --- Leg finished ---
+                        console.log('Leg finished');
+
+                        if (showTotalDartsAtLegFinish && matchVariant === 'X01') {
+
+                            const winnerStats = winnerPlayerCard.nextElementSibling;
+                            const winnerDartsText = winnerStats.innerText;
+
+                            const winnerDarts = winnerDartsText.slice(winnerDartsText.indexOf('#') + 1, winnerDartsText.indexOf('|') - 1).trim();
+
+                            const winnerDartsEl = document.createElement('div');
+                            winnerDartsEl.style.fontSize = '0.5em';
+                            // if (!showTotalDartsAtLegFinishLarge) winnerDartsEl.style.fontSize = '0.5em';
+                            winnerDartsEl.innerHTML = winnerDarts + ' Darts';
+
+                            winnerPlayerCard.querySelector('.ad-ext-player-score').replaceChildren(winnerDartsEl);
+                        }
+
+                        if (nextLegAfterSec !== 'OFF') {
+                            const buttons = [...document.querySelectorAll('button.css-1vfwxw0')];
+                            buttons.forEach((button) => {
+                                if (button.innerText === 'Next Leg') {
+                                    if (!parseInt(nextLegAfterSec)) return;
+                                    setTimeout(() => {
+                                        button.click();
+                                    }, parseInt(nextLegAfterSec) * 1000);
+                                }
+                            });
+                        }
+                    }
+                }
+            };
+
+            onCounterChange();
+
+            observeDOM(turnContainerEl, {}, async function(m) {
                 onCounterChange();
-
-                observeDOM(turnContainerEl, {}, async function(m) {
-                    onCounterChange();
-                });
-            }, 1000);
-        }
+            });
+        }, 0);
     };
+
+    const readyClassesValues = Object.values(readyClasses);
+
+    observeDOM(document.getElementById('root'), {}, function(mutationrecords) {
+        mutationrecords.some((record) => {
+            if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
+                const elemetClassList = [...record.addedNodes[0].classList];
+                // console.log('elemetClassList',elemetClassList);
+                return elemetClassList.some((className) => {
+                    if (className.startsWith('css-')) {
+                        // console.log('className', className);
+                        if (!readyClassesValues.includes(className)) return false;
+                        const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
+                        if (key) {
+                            setTimeout(() => {
+                                onDOMready();
+                                if (key === 'match') handleMatch();
+                                return true;
+                            }, 0);
+                        }
+                    }
+                });
+            }
+        });
+    });
 })();
