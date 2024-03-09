@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.19.0
+// @version      0.20
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -38,7 +38,6 @@
 
     let turnContainerEl;
 
-    let matchVariantEl;
     let matchVariant;
     let isValidMatchVariant = false;
 
@@ -493,10 +492,7 @@
             matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
             if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
 
-            // TODO: Timo - unique ID for getting matchVariant
-            const menuRow = mainContainerEl.querySelector('ul ul');
-            matchVariantEl = menuRow.querySelector('span');
-            matchVariant = matchVariantEl.innerText.split(' ')[0];
+            matchVariant = document.getElementById('ad-ext-game-variant').innerText.split(' ')[0];
 
             const isX01 = matchVariant === 'X01';
             const isCricket = matchVariant === 'Cricket';
@@ -768,7 +764,7 @@
 
                 const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
-                const playerEl = document.querySelector('.css-e9w8hh .css-1mxmf5a');
+                const playerEl = document.querySelector('.ad-ext-player-active .ad-ext-player-name');
                 const playerName = playerEl && playerEl.innerText;
 
                 const playPointsSound = () => {
@@ -862,7 +858,8 @@
 
                         if (winnerPlayerCard) {
                             const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
-                            const winnerPlayerName = winnerPlayerCard.firstChild.lastChild.querySelector('span')?.innerText;
+
+                            const winnerPlayerName = winnerPlayerCard.querySelector('.ad-ext-player-name').innerText;
 
                             if (document.querySelector('.game-shot-animation .css-x3m75h')) {
                                 document.querySelector('.game-shot-animation .css-x3m75h').style.lineHeight = '1';
