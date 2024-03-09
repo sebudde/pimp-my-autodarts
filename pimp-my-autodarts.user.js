@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.21
+// @version      0.22
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -510,6 +510,7 @@
             matchMenuRow.style.flexWrap = 'wrap';
             matchMenuRow.style.gap = '0.5rem';
             matchMenuRow.style.padding = '0px';
+            matchMenuRow.classList.add('adp_match-menu-row');
 
             matchMenuContainer.replaceChildren(matchMenuRow);
 
@@ -567,7 +568,7 @@
 
                 setCricketClosedPoints();
 
-                const buttons = [...document.querySelectorAll('button.css-1x1xjw8')];
+                const buttons = [...document.querySelectorAll('button')];
                 buttons.forEach((button) => {
                     if (button.innerText === 'Undo') {
                         button.addEventListener('click', async (event) => {
@@ -850,6 +851,8 @@
                         ////////////////  ////////////////////
 
                         if (winnerPlayerCard) {
+
+                            cricketClosedPoints = [];
                             const waitForSumCalling = throwPointsArr.length === 3 ? 2500 : 0;
 
                             const winnerPlayerName = winnerPlayerCard.querySelector('.ad-ext-player-name').innerText;
@@ -898,7 +901,7 @@
 
                 inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
 
-                if (inactiveSmall && inactivePlayerCardPointsElArr.length) {
+                if (inactiveSmall && inactivePlayerCardPointsElArr.length && activePlayerCardPointsEl) {
                     activePlayerCardPointsEl.classList.remove('adp_points-small');
                     [...inactivePlayerCardPointsElArr].forEach((el) => el.classList.add('adp_points-small'));
                 }
