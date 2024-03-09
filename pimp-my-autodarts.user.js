@@ -25,6 +25,7 @@
 
     // match
     let matchMenuRow;
+    let matchMenuContainer;
     let playerContainerEl;
     let playerContainerInfoElArr;
     let playerContainerStatsElArr;
@@ -93,7 +94,8 @@
     };
 
     const showHeader = (show) => {
-        if (hideHeaderBtn) hideHeaderBtn.innerText = `Header ${show ? 'ON' : 'OFF'}`;
+        if (hideHeaderBtn) hideHeaderBtn.innerText = `Menu ${show ? 'ON' : 'OFF'}`;
+        if (matchMenuContainer) matchMenuContainer.style.display = show ? 'flex' : 'none';
 
         if (show) {
             headerEl.attributeStyleMap.delete('display');
@@ -122,6 +124,8 @@
                         if (pathArr[1] === 'matches' && pathArr[2].length) {
                             console.log('match');
                             handleMatch();
+                        } else {
+                            firstMatchLoad = true;
                         }
                     } else if (counter > 100) {
                         if (mainContainerEl) mainContainerEl.style.display = 'flex';
@@ -519,6 +523,9 @@
             setTimeout(async () => {
                 console.log('match ready!');
 
+                matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
+                if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
+
                 // TODO: Timo - unique ID for getting matchVariant
                 const menuRow = mainContainerEl.querySelector('ul ul');
                 matchVariantEl = menuRow.querySelector('span');
@@ -526,8 +533,8 @@
 
                 const isX01 = matchVariant === 'X01';
                 const isCricket = matchVariant === 'Cricket';
-                // isValidMatchVariant = isX01 || isCricket;
-                isValidMatchVariant = isX01;
+                isValidMatchVariant = isX01 || isCricket;
+                // isValidMatchVariant = isX01;
 
                 if (!isValidMatchVariant) return;
 
@@ -547,9 +554,8 @@
                 matchMenuRow.style.flexWrap = 'wrap';
                 matchMenuRow.style.gap = '0.5rem';
                 matchMenuRow.style.padding = '0px';
-                matchMenuRow.style.display = hideHeaderGM ? 'none' : 'flex';
-                document.getElementById('ad-ext-game-settings-extra').style.display = 'flex';
-                document.getElementById('ad-ext-game-settings-extra').replaceChildren(matchMenuRow);
+
+                matchMenuContainer.replaceChildren(matchMenuRow);
 
                 // PR font-size larger
                 playerContainerStatsElArr.forEach((el) => (el.querySelectorAll('p')[1].style.fontSize = 'var(--chakra-fontSizes-xl)'));
@@ -557,9 +563,9 @@
                 let cricketClosedPoints = [];
 
                 const cricketContainer = document.getElementById('ad-ext-turn').nextElementSibling;
-                console.log('cricketContainer', cricketContainer);
+
                 const setCricketClosedPoints = () => {
-                    const cricketPointTable = document.getElementById('ad-ext-turn').nextElementSibling.children[2];
+                    const cricketPointTable = cricketContainer.children[2];
 
                     if (!cricketPointTable?.children) return;
                     cricketClosedPoints = [];
@@ -583,17 +589,25 @@
                 };
 
                 if (matchVariant === 'Cricket') {
-                    const cricketPointTable = document.getElementById('ad-ext-turn').nextElementSibling;
-
-                    document.querySelector('.css-1gy113g').style.minHeight = 0;
-                    if (isSmallDisplay) {
-                        const cricketPointContainer = document.querySelector('.css-1gy113g .css-99py2g');
-                        cricketPointContainer.style.minHeight = '195px';
-
-                        [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.lineHeight = '80pt'));
-                        [...cricketPointContainer.querySelectorAll('.css-x3m75h')].forEach((el) => (el.style.fontSize = '80pt'));
-                        [...cricketPointContainer.querySelectorAll('.css-1mxmf5a, .css-g6rh15')].forEach((el) => (el.style.fontSize = '1.25rem'));
-                    }
+                    cricketContainer.style.minHeight = '0';
+                    playerContainerEl.style.height = '100%';
+                    playerContainerEl.childNodes.forEach((el) => {
+                        el.style.height = '100%';
+                    });
+                    // [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
+                    //     el.parentElement.style.height = '100%';
+                    //     el.parentElement.style.padding = '6px 0';
+                    //     el.style.lineHeight = '0';
+                    //     el.style.margin = 'auto';
+                    //     el.nextElementSibling.querySelector('div > span').style.fontSize = '1.5rem';
+                    // });
+                    //
+                    // if (isSmallDisplay) {
+                    //     cricketContainer.children[0].style.minHeight = '195px';
+                    //     [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
+                    //         el.style.fontSize = '70pt';
+                    //     });
+                    // }
 
                     setCricketClosedPoints();
 
