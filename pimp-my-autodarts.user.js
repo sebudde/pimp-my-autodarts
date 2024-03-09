@@ -101,12 +101,7 @@
     const showHeader = (show) => {
         if (hideHeaderBtn) hideHeaderBtn.innerText = `Menu ${show ? 'ON' : 'OFF'}`;
         if (matchMenuContainer) matchMenuContainer.style.display = show ? 'flex' : 'none';
-
-        if (show) {
-            headerEl.attributeStyleMap.delete('display');
-        } else {
-            headerEl.style.display = 'none';
-        }
+        headerEl.classList.toggle('adp_hide', !show);
     };
 
     const setActiveAttr = (el, isActive) => {
@@ -223,7 +218,7 @@
             max-width: 1366px;
         }
         .adp_hide {
-            display: none;
+            display: none !important;
         }
         .adp_config-row {
             flex-direction: row;
