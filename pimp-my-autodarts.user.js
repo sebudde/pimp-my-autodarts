@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.18.0
+// @version      0.19.0
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -764,8 +764,7 @@
                 // const turnPointsEl = turnContainerEl.children[0];
                 const turnPoints = document.querySelector('.ad-ext-turn-points').innerText.trim();
                 // TODO: Timo - class only for thrown darts
-                // const throwPointsArr = [...turnContainerEl.querySelectorAll('.ad-ext-turn-throw')].map((el) => el.innerText);
-                const throwPointsArr = [...turnContainerEl.querySelectorAll('.css-dfewu8, .css-rzdgh7, .css-ucdbhl, .css-1chp9v4')].map((el) => el.innerText);
+                const throwPointsArr = [...turnContainerEl.querySelectorAll('.ad-ext-turn-throw')].map((el) => el.innerText);
 
                 const curThrowPointsName = throwPointsArr.slice(-1)[0];
 
