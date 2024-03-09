@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.22
+// @version      0.23
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -482,9 +482,6 @@
         setTimeout(async () => {
             console.log('match ready!');
 
-            matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
-            if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
-
             matchVariant = document.getElementById('ad-ext-game-variant').innerText.split(' ')[0];
 
             const isX01 = matchVariant === 'X01';
@@ -493,6 +490,9 @@
             // isValidMatchVariant = isX01;
 
             if (!isValidMatchVariant) return;
+
+            matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
+            if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
 
             playerContainerEl = document.getElementById('ad-ext-player-display');
 
