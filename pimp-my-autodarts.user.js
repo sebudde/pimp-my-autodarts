@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.20
+// @version      0.21
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -51,13 +51,6 @@
     //
 
     let firstLoad = true;
-
-    const readyClasses = {
-        play: 'css-14trzk1', // lobbies: 'css-1q0rlnk',
-        // table: 'css-p3eaf1', // matches & boards
-        match: 'css-ul22ge',
-        matchHistory: 'css-5bhccf'
-    };
 
     const configPathName = '/config';
     const configPageContainer = document.createElement('div');
@@ -954,11 +947,20 @@
         }, 0);
     };
 
+    const readyClasses = {
+        play: 'css-14trzk1', // lobbies: 'css-1q0rlnk',
+        // table: 'css-p3eaf1', // matches & boards
+        x01: 'css-ul22ge',
+        cricket: 'css-103ls90',
+        matchHistory: 'css-5bhccf'
+    };
+
     const readyClassesValues = Object.values(readyClasses);
 
     observeDOM(document.getElementById('root'), {}, function(mutationrecords) {
         mutationrecords.some((record) => {
             if (record.addedNodes.length && record.addedNodes[0].classList?.length) {
+                // record.addedNodes.forEach((node) => {console.log('node', node);});
                 const elemetClassList = [...record.addedNodes[0].classList];
                 // console.log('elemetClassList',elemetClassList);
                 return elemetClassList.some((className) => {
@@ -969,7 +971,7 @@
                         if (key) {
                             setTimeout(() => {
                                 onDOMready();
-                                if (key === 'match') handleMatch();
+                                if (key === 'x01' || key === 'cricket') handleMatch();
                                 return true;
                             }, 0);
                         }
