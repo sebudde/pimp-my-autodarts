@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.26
+// @version      0.27
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -290,8 +290,10 @@
         }
         .adp_boardview-numbers {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
         }
         .ring {
             /* --character-width: 1ch; */
@@ -1070,6 +1072,12 @@
             boardViewContainer.children[0].appendChild(boardViewNumbers);
             boardViewNumbers.classList.toggle('adp_hide', !showRingGM);
 
+            const minSize = Math.min(boardViewNumbers.offsetWidth, boardViewNumbers.offsetHeight);
+
+            const ringSize = minSize * 3 / 1000 - (minSize / 3500);
+            // console.log('minSize', minSize);
+            // console.log('ringSize', ringSize);
+
             const buttonStack = boardViewContainer.children[0].children[1].children[0];
 
             const ringBtn = document.createElement('button');
@@ -1092,8 +1100,8 @@
             headingEl.classList.add('ring');
 
             const ringOptions = {
-                spacing: 0.85,
-                size: 2.1,
+                spacing: 1.4,
+                size: ringSize,
                 text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
             };
 
