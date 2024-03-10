@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.27
+// @version      0.28
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -230,7 +230,16 @@
             opacity: 1;
             background: var(--chakra-colors-gray-500);
         }
-        .game-shot-animation {
+
+        .game-shot-animation .ad-ext-player-score {
+            line-height: 30px!important;
+        }
+
+        .game-shot-animation .game-shot-message {
+            line-height: 84px!important;
+        }
+
+        /* .game-shot-animation {
             position: relative;
             z-index: 1;
         }
@@ -288,6 +297,7 @@
         .game-shot-animation:after {
             filter: blur(50px);
         }
+        */
         .adp_boardview-numbers {
             position: absolute;
             left: 0;
@@ -1021,24 +1031,24 @@
                     }
                 }
 
-                if (winnerPlayerCard && gsa) {
-                    const gameShotMessageEl = document.createElement('div');
-                    gameShotMessageEl.classList.add('game-shot-message');
-                    gameShotMessageEl.textContent = 'Game Shot!';
-                    gameShotMessageEl.style.fontSize = '0.5em';
-                    gameShotMessageEl.style.lineHeight = '1.2';
-
-                    winnerPlayerCard.querySelector('.ad-ext-player-score').style.maxHeight = '122px';
-                    winnerPlayerCard.querySelector('.ad-ext-player-score').style.textAlign = 'center';
-                    winnerPlayerCard.querySelector('.ad-ext-player-score').appendChild(gameShotMessageEl);
-
-                    winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.fontSize = '0.3em';
-                    winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.lineHeight = '1.2';
-
-                    winnerPlayerCard.classList.add('game-shot-animation');
-                    document.querySelector('.adp_maincontainer').style.overflow = 'unset';
-
-                }
+                // if (winnerPlayerCard && gsa) {
+                //     const gameShotMessageEl = document.createElement('div');
+                //     gameShotMessageEl.classList.add('game-shot-message');
+                //     gameShotMessageEl.textContent = 'Game Shot!';
+                //     gameShotMessageEl.style.fontSize = '0.5em';
+                //     gameShotMessageEl.style.lineHeight = '1.2';
+                //
+                //     winnerPlayerCard.querySelector('.ad-ext-player-score').style.maxHeight = '122px';
+                //     winnerPlayerCard.querySelector('.ad-ext-player-score').style.textAlign = 'center';
+                //     winnerPlayerCard.querySelector('.ad-ext-player-score').appendChild(gameShotMessageEl);
+                //
+                //     winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.fontSize = '0.3em';
+                //     winnerPlayerCard.querySelector('.ad-ext-player-score > div:first-child').style.lineHeight = '1.2';
+                //
+                //     winnerPlayerCard.classList.add('game-shot-animation');
+                //     document.querySelector('.adp_maincontainer').style.overflow = 'unset';
+                //
+                // }
             };
 
             onCounterChange();
@@ -1053,7 +1063,7 @@
 
             observeDOM(document.getElementById('ad-ext-turn').nextElementSibling, {attributes: false}, function(mutationrecords) {
                 mutationrecords.some((record) => {
-                    if (record.addedNodes.length && record.addedNodes[0] && record.addedNodes[0].childNodes.length === 2 && record.addedNodes[0].children[1].childElementCount === 2) {
+                    if (record.addedNodes.length > 0 && record.addedNodes[0] && record.addedNodes[0].childElementCount === 2 && record.addedNodes[0].children[1].childElementCount === 2) {
                         addRing();
                     }
                 });
