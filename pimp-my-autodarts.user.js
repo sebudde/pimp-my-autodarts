@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.30
+// @version      0.31
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -978,7 +978,7 @@
                             }, waitForSumCalling);
                         }
                     }
-                }, isBot ? 100 : 0);
+                }, isBot ? 500 : 0);
             };
 
             const onCounterChange = async () => {
