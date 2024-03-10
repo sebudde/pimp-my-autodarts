@@ -22,6 +22,7 @@ If you have questions, please first
 - smaller font size for score of non-active players (config page -> on/off)</br>
   (like [Autodarts inactive player smaller points display](https://greasyfork.org/de/scripts/487524-autodarts-inactive-player-smaller-points-display))
 - larger font size for PPR
+- numbers on the board in match live view (on/off)
 
 **because of copyright you have to define the caller data on config page** (but I'm sure you find the needed
 information 😉)</br>
