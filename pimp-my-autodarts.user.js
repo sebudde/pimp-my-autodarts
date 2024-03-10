@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.28
+// @version      0.29
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -967,7 +967,7 @@
                                             const winnerSoundDataValues = Object.values(winnerSoundData);
                                             const winnerSoundurl = winnerSoundDataValues.find(
                                                 winnersound => winnersound?.playername?.toLowerCase() === winnerPlayerName?.toLowerCase())?.soundurl;
-                                            const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
+                                            const winnerFallbackSoundurl = winnerSoundData[`winnerSound${winnerSoundDataValues.length - 1}`]?.soundurl;
                                             console.log('winnerSoundurl', winnerSoundurl);
                                             console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
                                             playSound3(winnerSoundurl || winnerFallbackSoundurl);
