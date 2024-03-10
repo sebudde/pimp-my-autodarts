@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.25
+// @version      0.26
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -288,6 +288,32 @@
         .game-shot-animation:after {
             filter: blur(50px);
         }
+        .adp_boardview-numbers {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+        .ring {
+            /* --character-width: 1ch; */
+            --inner-angle: calc((360 / var(--char-count)) * 1deg);
+            --character-width: 1;
+            font-size: calc(var(--font-size, 1) * 1rem);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+
+        .char {
+            display: inline-block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* line-height: 1; */
+            transform:
+            translate(-50%, -50%)
+            rotate(calc(var(--inner-angle) * var(--char-index) - 2deg))
+            translateY(var(--radius));
+        }
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
@@ -530,7 +556,6 @@
                 }
 
             }, false)));
-
         }
 
         console.log('DOM ready');
@@ -933,7 +958,7 @@
                                             const winnerFallbackSoundurl = winnerSoundDataValues[winnerSoundDataValues.length - 1]?.soundurl;
                                             console.log('winnerSoundurl', winnerSoundurl);
                                             console.log('winnerFallbackSoundurl', winnerFallbackSoundurl);
-                                            playSound2(winnerSoundurl || winnerFallbackSoundurl);
+                                            playSound3(winnerSoundurl || winnerFallbackSoundurl);
 
                                         }, 1000);
                                     }
@@ -1019,7 +1044,82 @@
             observeDOM(turnContainerEl, {}, async function(m) {
                 onCounterChange();
             });
+
+            if (document.getElementById('ad-ext-turn').nextElementSibling.children[0].children[1].childElementCount === 2) {
+                addRing();
+            }
+
+            observeDOM(document.getElementById('ad-ext-turn').nextElementSibling, {attributes: false}, function(mutationrecords) {
+                mutationrecords.some((record) => {
+                    if (record.addedNodes.length && record.addedNodes[0] && record.addedNodes[0].childNodes.length === 2 && record.addedNodes[0].children[1].childElementCount === 2) {
+                        addRing();
+                    }
+                });
+            });
         }, 0);
+    };
+
+    const addRing = () => {
+        setTimeout(async () => {
+            const showRingGM = await GM.getValue('showRing');
+
+            const boardViewContainer = document.getElementById('ad-ext-turn').nextElementSibling;
+            boardViewContainer.classList.add('adp_boardview-container');
+            const boardViewNumbers = document.createElement('div');
+            boardViewNumbers.classList.add('adp_boardview-numbers');
+            boardViewContainer.children[0].appendChild(boardViewNumbers);
+            boardViewNumbers.classList.toggle('adp_hide', !showRingGM);
+
+            const buttonStack = boardViewContainer.children[0].children[1].children[0];
+
+            const ringBtn = document.createElement('button');
+            ringBtn.classList.add('css-qwakwq');
+            ringBtn.innerText = `Ring ${showRingGM ? 'ON' : 'OFF'}`;
+            setActiveAttr(ringBtn, showRingGM);
+
+            ringBtn.addEventListener('click', async (event) => {
+                const isActive = event.target.hasAttribute('data-active');
+                setActiveAttr(ringBtn, !isActive);
+                await GM.setValue('showRing', !isActive);
+                ringBtn.innerText = `Ring ${!isActive ? 'ON' : 'OFF'}`;
+                boardViewNumbers.classList.toggle('adp_hide', isActive);
+            }, false);
+
+            buttonStack.appendChild(ringBtn);
+
+            const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
+            const headingEl = document.createElement('h1');
+            headingEl.classList.add('ring');
+
+            const ringOptions = {
+                spacing: 0.85,
+                size: 2.1,
+                text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
+            };
+
+            const text = ringOptions.text;
+            const chars = text.split('');
+            headingEl.innerHTML = '';
+            headingEl.style.setProperty('--char-count', chars.length);
+
+            for (let c = 0; c < chars.length; c++) {
+                headingEl.innerHTML += `<span aria-hidden="true" class="char" style="--char-index: ${c};">${chars[c]}</span>`;
+            }
+            headingEl.style.setProperty('--font-size', ringOptions.size);
+            headingEl.style.setProperty('--character-width', ringOptions.spacing);
+            headingEl.style.setProperty('--radius', canTrig ? 'calc((var(--character-width) / sin(var(--inner-angle))) * -1ch' : `calc(
+              (${ringOptions.spacing} / ${Math.sin(360 / headingEl.children.length / (180 / Math.PI))})
+              * -1ch
+            )`);
+
+            document.documentElement.style.setProperty('--buffer',
+                canTrig ? `calc((${ringOptions.spacing} / sin(${360 / headingEl.children.length}deg)) * ${ringOptions.size}rem)` : `calc((${ringOptions.spacing} / ${Math.sin(
+                    360 / headingEl.children.length / (180 / Math.PI))}) * ${ringOptions.size}rem)`);
+
+            boardViewNumbers.appendChild(headingEl);
+
+        }, 100);
+
     };
 
     const readyClasses = {
