@@ -304,29 +304,44 @@
         .adp_boardview-container.adp_showring .adp_boardview-image svg {
             clip-path: circle(44%);
         }
-        .adp_boardview-container.adp_showring:not([data-ringsize="1"]) .adp_boardview-image svg {
-            background: rgb(0 0 0);
-            background: radial-gradient(circle, rgba(153, 153, 153, 1) 31%, rgba(0, 0, 0, 1) 58%);
-        }
         .adp_boardview-container.adp_showring:not([data-ringsize="1"]) .adp_boardview-image image {
             clip-path: circle(34.5%) !important;
         }
-        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image svg {
+        .adp_boardview-container.adp_showring[data-ringsize="2"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image svg {
+            background: rgb(0 0 0);
+            background: radial-gradient(circle, rgba(153, 153, 153, 1) 31%, rgba(0, 0, 0, 1) 58%);
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="6"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="7"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="8"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="9"] .adp_boardview-image svg {
+            background: var(--chakra-colors-blue-500);
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image svg,
+         .adp_boardview-container.adp_showring[data-ringsize="7"] .adp_boardview-image svg {
             clip-path: circle(45%);
         }
-        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image image {
+        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image image,
+        .adp_boardview-container.adp_showring[data-ringsize="7"] .adp_boardview-image image {
             clip-path: circle(35.5%) !important;
         }
-        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image svg {
-            clip-path: circle(46%);
+        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="8"] .adp_boardview-image svg {
+            clip-path: circle(46.5%);
         }
-        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image image {
+        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image image,
+        .adp_boardview-container.adp_showring[data-ringsize="8"] .adp_boardview-image image {
             clip-path: circle(36.5%) !important;
         }
-        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image svg {
-            clip-path: circle(47%);
+        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image svg,
+        .adp_boardview-container.adp_showring[data-ringsize="9"] .adp_boardview-image svg {
+            clip-path: circle(48%);
         }
-        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image image {
+        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image image,
+        .adp_boardview-container.adp_showring[data-ringsize="9"] .adp_boardview-image image {
             clip-path: circle(37.5%) !important;
         }
 
@@ -1126,6 +1141,15 @@
             case 5:
                 addVal = 0.12;
                 break;
+            case 7:
+                addVal = 0.05;
+                break;
+            case 8:
+                addVal = 0.08;
+                break;
+            case 9:
+                addVal = 0.12;
+                break;
         }
 
         const minSize = Math.min(boardViewNumbersEl.offsetWidth, boardViewNumbersEl.offsetHeight);
@@ -1195,7 +1219,7 @@
 
             ringBtn.addEventListener('click', async (event) => {
                 ringsize++;
-                ringsize = ringsize > 5 ? 0 : ringsize;
+                ringsize = ringsize > 9 ? 0 : ringsize;
                 const isActive = ringsize > 0;
                 setActiveAttr(ringBtn, isActive);
                 await GM.setValue('showRing', ringsize);
