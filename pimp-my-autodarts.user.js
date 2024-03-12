@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.34-test
+// @version      0.34
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -56,6 +56,9 @@
 
     const configPathName = '/config';
     const configPageContainer = document.createElement('div');
+
+    const ringHeadingEl = document.createElement('h1');
+    ringHeadingEl.classList.add('ring');
 
     const isiOS = [
             'iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || // iPad on iOS 13 detection
@@ -300,23 +303,31 @@
         */
         .adp_boardview-container.adp_showring .adp_boardview-image svg {
             clip-path: circle(44%);
+        }
+        .adp_boardview-container.adp_showring:not([data-ringsize="1"]) .adp_boardview-image svg {
             background: rgb(0 0 0);
             background: radial-gradient(circle, rgba(153, 153, 153, 1) 31%, rgba(0, 0, 0, 1) 58%);
         }
-        .adp_boardview-container.adp_showring .adp_boardview-image image {
+        .adp_boardview-container.adp_showring:not([data-ringsize="1"]) .adp_boardview-image image {
             clip-path: circle(34.5%) !important;
         }
-        .adp_boardview-container.adp_showring[data-ringsize="2"] .adp_boardview-image svg {
+        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image svg {
             clip-path: circle(45%);
         }
-        .adp_boardview-container.adp_showring[data-ringsize="2"] .adp_boardview-image image {
+        .adp_boardview-container.adp_showring[data-ringsize="3"] .adp_boardview-image image {
             clip-path: circle(35.5%) !important;
         }
-        .adp_boardview-container.adp_showring[data-ringsize="1"] .adp_boardview-image svg {
+        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image svg {
             clip-path: circle(46%);
         }
-        .adp_boardview-container.adp_showring[data-ringsize="1"] .adp_boardview-image image {
+        .adp_boardview-container.adp_showring[data-ringsize="4"] .adp_boardview-image image {
             clip-path: circle(36.5%) !important;
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image svg {
+            clip-path: circle(47%);
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="5"] .adp_boardview-image image {
+            clip-path: circle(37.5%) !important;
         }
 
         .adp_boardview-container .adp_boardview-numbers {
@@ -1101,13 +1112,38 @@
         }, 0);
     };
 
+    const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
+
+    const setRingSize = (boardViewNumbersEl, ringSpace, ringSize) => {
+        let addVal = 0;
+        switch (ringSize) {
+            case 3:
+                addVal = 0.05;
+                break;
+            case 4:
+                addVal = 0.08;
+                break;
+            case 5:
+                addVal = 0.12;
+                break;
+        }
+
+        const minSize = Math.min(boardViewNumbersEl.offsetWidth, boardViewNumbersEl.offsetHeight);
+        const newSize = minSize * 3 / 1000 - (minSize / 3500) + addVal;
+        ringHeadingEl.style.setProperty('--font-size', newSize);
+        ``;
+        document.documentElement.style.setProperty('--buffer',
+            canTrig ? `calc((${ringSpace} / sin(${360 / ringHeadingEl.children.length}deg)) * ${newSize}rem)` : `calc((${ringSpace} / ${Math.sin(
+                360 / ringHeadingEl.children.length / (180 / Math.PI))}) * ${newSize}rem)`);
+    };
+
     const addRing = () => {
         setTimeout(async () => {
             const showRingGM = await GM.getValue('showRing');
             let ringsize = showRingGM;
             switch (true) {
                 case showRingGM === true:
-                    ringsize = 3;
+                    ringsize = 2;
                     break;
                 case showRingGM === false:
                     ringsize = 0;
@@ -1124,20 +1160,6 @@
             boardViewContainer.classList.toggle('adp_showring', ringsize > 0);
             boardViewContainer.dataset.ringsize = ringsize;
 
-            const minSize = Math.min(boardViewNumbers.offsetWidth, boardViewNumbers.offsetHeight);
-
-            let addVal = 0;
-            switch (ringsize) {
-                case 1:
-                    addVal = 0.1;
-                    break;
-                case 2:
-                    addVal = 0.05;
-                    break;
-            }
-
-            const size = minSize * 3 / 1000 - (minSize / 3500) + addVal;
-
             const buttonStack = boardViewContainer.children[0].children[1].children[0];
             const imageHolder = boardViewContainer.children[0].children[1].children[1];
 
@@ -1148,40 +1170,32 @@
             ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
             setActiveAttr(ringBtn, ringsize > 0);
 
-            const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
-            const headingEl = document.createElement('h1');
-            headingEl.classList.add('ring');
-
             const ringOptions = {
                 spacing: 1.4,
-                size: size,
                 text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
             };
 
             const text = ringOptions.text;
             const chars = text.split('');
-            headingEl.innerHTML = '';
-            headingEl.style.setProperty('--char-count', chars.length);
+            ringHeadingEl.innerHTML = '';
+            ringHeadingEl.style.setProperty('--char-count', chars.length);
 
             for (let c = 0; c < chars.length; c++) {
-                headingEl.innerHTML += `<span aria-hidden="true" class="char" style="--char-index: ${c};">${chars[c]}</span>`;
+                ringHeadingEl.innerHTML += `<span aria-hidden="true" class="char" style="--char-index: ${c};">${chars[c]}</span>`;
             }
-            headingEl.style.setProperty('--font-size', ringOptions.size);
-            headingEl.style.setProperty('--character-width', ringOptions.spacing);
-            headingEl.style.setProperty('--radius', canTrig ? 'calc((var(--character-width) / sin(var(--inner-angle))) * -1ch' : `calc(
-              (${ringOptions.spacing} / ${Math.sin(360 / headingEl.children.length / (180 / Math.PI))})
+            ringHeadingEl.style.setProperty('--character-width', ringOptions.spacing);
+            ringHeadingEl.style.setProperty('--radius', canTrig ? 'calc((var(--character-width) / sin(var(--inner-angle))) * -1ch' : `calc(
+              (${ringOptions.spacing} / ${Math.sin(360 / ringHeadingEl.children.length / (180 / Math.PI))})
               * -1ch
             )`);
 
-            document.documentElement.style.setProperty('--buffer',
-                canTrig ? `calc((${ringOptions.spacing} / sin(${360 / headingEl.children.length}deg)) * ${ringOptions.size}rem)` : `calc((${ringOptions.spacing} / ${Math.sin(
-                    360 / headingEl.children.length / (180 / Math.PI))}) * ${ringOptions.size}rem)`);
+            setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
 
-            boardViewNumbers.appendChild(headingEl);
+            boardViewNumbers.appendChild(ringHeadingEl);
 
             ringBtn.addEventListener('click', async (event) => {
                 ringsize++;
-                ringsize = ringsize > 3 ? 0 : ringsize;
+                ringsize = ringsize > 5 ? 0 : ringsize;
                 const isActive = ringsize > 0;
                 setActiveAttr(ringBtn, isActive);
                 await GM.setValue('showRing', ringsize);
@@ -1189,22 +1203,7 @@
                 boardViewContainer.classList.toggle('adp_showring', isActive);
                 boardViewContainer.dataset.ringsize = ringsize;
 
-                let addVal = 0;
-                switch (ringsize) {
-                    case 1:
-                        addVal = 0.08;
-                        break;
-                    case 2:
-                        addVal = 0.05;
-                        break;
-                }
-
-                const newSize = minSize * 3 / 1000 - (minSize / 3500) + addVal;
-                headingEl.style.setProperty('--font-size', newSize);
-
-                document.documentElement.style.setProperty('--buffer',
-                    canTrig ? `calc((${ringOptions.spacing} / sin(${360 / headingEl.children.length}deg)) * ${newSize}rem)` : `calc((${ringOptions.spacing} / ${Math.sin(
-                        360 / headingEl.children.length / (180 / Math.PI))}) * ${newSize}rem)`);
+                setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
 
             }, false);
 
