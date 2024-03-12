@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.33
+// @version      0.34-test
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -306,6 +306,19 @@
         .adp_boardview-container.adp_showring .adp_boardview-image image {
             clip-path: circle(34.5%) !important;
         }
+        .adp_boardview-container.adp_showring[data-ringsize="2"] .adp_boardview-image svg {
+            clip-path: circle(45%);
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="2"] .adp_boardview-image image {
+            clip-path: circle(35.5%) !important;
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="1"] .adp_boardview-image svg {
+            clip-path: circle(46%);
+        }
+        .adp_boardview-container.adp_showring[data-ringsize="1"] .adp_boardview-image image {
+            clip-path: circle(36.5%) !important;
+        }
+
         .adp_boardview-container .adp_boardview-numbers {
             position: absolute;
             left: 0;
@@ -1091,20 +1104,39 @@
     const addRing = () => {
         setTimeout(async () => {
             const showRingGM = await GM.getValue('showRing');
+            let ringsize = showRingGM;
+            switch (true) {
+                case showRingGM === true:
+                    ringsize = 3;
+                    break;
+                case showRingGM === false:
+                    ringsize = 0;
+                    break;
+                case showRingGM === undefined:
+                    ringsize = 0;
+            }
 
             const boardViewContainer = document.getElementById('ad-ext-turn').nextElementSibling;
             boardViewContainer.classList.add('adp_boardview-container');
             const boardViewNumbers = document.createElement('div');
             boardViewNumbers.classList.add('adp_boardview-numbers');
             boardViewContainer.children[0].appendChild(boardViewNumbers);
-            // boardViewNumbers.classList.toggle('adp_hide', !showRingGM);
-            boardViewContainer.classList.toggle('adp_showring', showRingGM);
+            boardViewContainer.classList.toggle('adp_showring', ringsize > 0);
+            boardViewContainer.dataset.ringsize = ringsize;
 
             const minSize = Math.min(boardViewNumbers.offsetWidth, boardViewNumbers.offsetHeight);
 
-            const ringSize = minSize * 3 / 1000 - (minSize / 3500);
-            // console.log('minSize', minSize);
-            // console.log('ringSize', ringSize);
+            let addVal = 0;
+            switch (ringsize) {
+                case 1:
+                    addVal = 0.1;
+                    break;
+                case 2:
+                    addVal = 0.05;
+                    break;
+            }
+
+            const size = minSize * 3 / 1000 - (minSize / 3500) + addVal;
 
             const buttonStack = boardViewContainer.children[0].children[1].children[0];
             const imageHolder = boardViewContainer.children[0].children[1].children[1];
@@ -1113,20 +1145,8 @@
 
             const ringBtn = document.createElement('button');
             ringBtn.classList.add('css-qwakwq');
-            ringBtn.innerText = `Ring ${showRingGM ? 'ON' : 'OFF'}`;
-            setActiveAttr(ringBtn, showRingGM);
-
-            ringBtn.addEventListener('click', async (event) => {
-                const isActive = event.target.hasAttribute('data-active');
-                setActiveAttr(ringBtn, !isActive);
-                await GM.setValue('showRing', !isActive);
-                ringBtn.innerText = `Ring ${!isActive ? 'ON' : 'OFF'}`;
-                // boardViewNumbers.classList.toggle('adp_hide', isActive);
-                boardViewContainer.classList.toggle('adp_showring', !isActive);
-
-            }, false);
-
-            buttonStack.appendChild(ringBtn);
+            ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
+            setActiveAttr(ringBtn, ringsize > 0);
 
             const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
             const headingEl = document.createElement('h1');
@@ -1134,7 +1154,7 @@
 
             const ringOptions = {
                 spacing: 1.4,
-                size: ringSize,
+                size: size,
                 text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
             };
 
@@ -1158,6 +1178,37 @@
                     360 / headingEl.children.length / (180 / Math.PI))}) * ${ringOptions.size}rem)`);
 
             boardViewNumbers.appendChild(headingEl);
+
+            ringBtn.addEventListener('click', async (event) => {
+                ringsize++;
+                ringsize = ringsize > 3 ? 0 : ringsize;
+                const isActive = ringsize > 0;
+                setActiveAttr(ringBtn, isActive);
+                await GM.setValue('showRing', ringsize);
+                ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
+                boardViewContainer.classList.toggle('adp_showring', isActive);
+                boardViewContainer.dataset.ringsize = ringsize;
+
+                let addVal = 0;
+                switch (ringsize) {
+                    case 1:
+                        addVal = 0.08;
+                        break;
+                    case 2:
+                        addVal = 0.05;
+                        break;
+                }
+
+                const newSize = minSize * 3 / 1000 - (minSize / 3500) + addVal;
+                headingEl.style.setProperty('--font-size', newSize);
+
+                document.documentElement.style.setProperty('--buffer',
+                    canTrig ? `calc((${ringOptions.spacing} / sin(${360 / headingEl.children.length}deg)) * ${newSize}rem)` : `calc((${ringOptions.spacing} / ${Math.sin(
+                        360 / headingEl.children.length / (180 / Math.PI))}) * ${newSize}rem)`);
+
+            }, false);
+
+            buttonStack.appendChild(ringBtn);
 
         }, 100);
 
