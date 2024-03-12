@@ -298,12 +298,24 @@
             filter: blur(50px);
         }
         */
-        .adp_boardview-numbers {
+        .adp_boardview-container.adp_showring .adp_boardview-image svg {
+            clip-path: circle(44%);
+            background: rgb(0 0 0);
+            background: radial-gradient(circle, rgba(153, 153, 153, 1) 31%, rgba(0, 0, 0, 1) 58%);
+        }
+        .adp_boardview-container.adp_showring .adp_boardview-image image {
+            clip-path: circle(34.5%) !important;
+        }
+        .adp_boardview-container .adp_boardview-numbers {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
+            display: none;
+        }
+        .adp_boardview-container.adp_showring .adp_boardview-numbers {
+            display: block;
         }
         .ring {
             /* --character-width: 1ch; */
@@ -313,6 +325,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
+            font-weight: 900;
         }
 
         .char {
@@ -1084,7 +1097,8 @@
             const boardViewNumbers = document.createElement('div');
             boardViewNumbers.classList.add('adp_boardview-numbers');
             boardViewContainer.children[0].appendChild(boardViewNumbers);
-            boardViewNumbers.classList.toggle('adp_hide', !showRingGM);
+            // boardViewNumbers.classList.toggle('adp_hide', !showRingGM);
+            boardViewContainer.classList.toggle('adp_showring', showRingGM);
 
             const minSize = Math.min(boardViewNumbers.offsetWidth, boardViewNumbers.offsetHeight);
 
@@ -1093,6 +1107,9 @@
             // console.log('ringSize', ringSize);
 
             const buttonStack = boardViewContainer.children[0].children[1].children[0];
+            const imageHolder = boardViewContainer.children[0].children[1].children[1];
+
+            imageHolder.classList.add('adp_boardview-image');
 
             const ringBtn = document.createElement('button');
             ringBtn.classList.add('css-qwakwq');
@@ -1104,7 +1121,9 @@
                 setActiveAttr(ringBtn, !isActive);
                 await GM.setValue('showRing', !isActive);
                 ringBtn.innerText = `Ring ${!isActive ? 'ON' : 'OFF'}`;
-                boardViewNumbers.classList.toggle('adp_hide', isActive);
+                // boardViewNumbers.classList.toggle('adp_hide', isActive);
+                boardViewContainer.classList.toggle('adp_showring', !isActive);
+
             }, false);
 
             buttonStack.appendChild(ringBtn);
