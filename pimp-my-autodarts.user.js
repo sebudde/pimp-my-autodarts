@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.34
+// @version      0.35
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -48,6 +48,7 @@
     let showTotalDartsAtLegFinish;
     let showTotalDartsAtLegFinishLarge;
     let soundAfterBotThrow;
+    let modalTakeout;
     //
 
     let gsa = false;
@@ -378,6 +379,71 @@
             rotate(calc(var(--inner-angle) * var(--char-index) - 2deg))
             translateY(var(--radius));
         }
+
+        .chakra-modal {
+            display: flex;
+            width: 100vw;
+            height: var(--chakra-vh);
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            background: var(--chakra-colors-blackAlpha-600);
+            z-index: var(--chakra-zIndices-modal);
+            -webkit-box-pack: center;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            overscroll-behavior-y: none;
+            pointer-events: none;
+        }
+        .chakra-modal__content {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: auto;
+            border-radius: var(--chakra-radii-md);
+            color: inherit;
+            margin-top: 35vh;
+            z-index: var(--chakra-zIndices-modal);
+            --modal-bg: var(--chakra-colors-white);
+            --modal-shadow: var(--chakra-shadows-lg);
+            box-shadow: var(--modal-shadow);
+            max-width: var(--chakra-sizes-md);
+            background: var(--chakra-colors-yellow-500);
+}
+
+        .chakra-modal__header {
+            width: 290px;
+            padding-inline-start: var(--chakra-space-6);
+            padding-inline-end: var(--chakra-space-6);
+            padding-top: var(--chakra-space-4);
+            padding-bottom: var(--chakra-space-4);
+            font-size: var(--chakra-fontSizes-lg);
+            font-weight: var(--chakra-fontWeights-bold);
+        }
+
+        .chakra-modal__header:after {
+              overflow: hidden;
+              display: inline-block;
+              vertical-align: bottom;
+              -webkit-animation: ellipsis steps(4,end) 900ms infinite;
+              animation: ellipsis steps(4,end) 900ms infinite;
+              content: "\\2026";
+              width: 0px;
+            }
+
+            @keyframes ellipsis {
+              to {
+                width: 1.25em;
+              }
+            }
+
+            @-webkit-keyframes ellipsis {
+              to {
+                width: 1.25em;
+              }
+            }
+
     `;
     document.getElementsByTagName('head')[0].appendChild(adp_style);
 
@@ -444,6 +510,7 @@
             showTotalDartsAtLegFinish = (await GM.getValue('showTotalDartsAtLegFinish')) ?? true;
             showTotalDartsAtLegFinishLarge = (await GM.getValue('showTotalDartsAtLegFinishLarge')) ?? false;
             soundAfterBotThrow = (await GM.getValue('soundAfterBotThrow')) ?? true;
+            modalTakeout = (await GM.getValue('modalTakeout')) ?? true;
 
             configPageContainer.classList.add('adp_configPageContainer');
             const configContainer = document.createElement('div');
@@ -524,9 +591,27 @@
                 event.target.innerText = !isSoundAfterBotThrow ? 'ON' : 'OFF';
             }, false);
 
+            const configContentRow4 = document.createElement('div');
+            configContentRow4.classList.add('adp_config-row');
+            configContentRow4.style.gap = '2rem';
+
+            configContentRow4.innerHTML = `
+            <div class="adp_config-btn--label">Show modal while takeout</div>
+            <button id="modalTakeout" class="css-1xbmrf2 adp_config-btn${modalTakeout ? ' active' : ''}">${modalTakeout ? 'ON' : 'OFF'}</button>
+            `;
+
+            configContentRow4.querySelector('button#modalTakeout').addEventListener('click', async (event) => {
+                const isModalTakeout = event.target.classList.contains('active');
+                event.target.classList.toggle('active');
+                modalTakeout = !isModalTakeout;
+                await GM.setValue('modalTakeout', !isModalTakeout);
+                event.target.innerText = !isModalTakeout ? 'ON' : 'OFF';
+            }, false);
+
             configContainer.appendChild(configContentRow1);
             configContainer.appendChild(configContentRow2);
             configContainer.appendChild(configContentRow3);
+            configContainer.appendChild(configContentRow4);
 
             const callerHeader = document.createElement('h3');
             callerHeader.classList.add('adp_config-header');
@@ -634,6 +719,8 @@
             console.log('match ready!');
 
             matchVariant = document.getElementById('ad-ext-game-variant').innerText.split(' ')[0];
+
+            handleTakeoutMessage();
 
             const isX01 = matchVariant === 'X01';
             const isCricket = matchVariant === 'Cricket';
@@ -1113,6 +1200,116 @@
                 onCounterChange();
             });
 
+            const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
+
+            const setRingSize = (boardViewNumbersEl, ringSpace, ringSize) => {
+                let addVal = 0;
+                switch (ringSize) {
+                    case 3:
+                        addVal = 0.05;
+                        break;
+                    case 4:
+                        addVal = 0.08;
+                        break;
+                    case 5:
+                        addVal = 0.12;
+                        break;
+                    case 7:
+                        addVal = 0.05;
+                        break;
+                    case 8:
+                        addVal = 0.08;
+                        break;
+                    case 9:
+                        addVal = 0.12;
+                        break;
+                }
+
+                const minSize = Math.min(boardViewNumbersEl.offsetWidth, boardViewNumbersEl.offsetHeight);
+                const newSize = minSize * 3 / 1000 - (minSize / 3500) + addVal;
+                ringHeadingEl.style.setProperty('--font-size', newSize);
+                ``;
+                document.documentElement.style.setProperty('--buffer',
+                    canTrig ? `calc((${ringSpace} / sin(${360 / ringHeadingEl.children.length}deg)) * ${newSize}rem)` : `calc((${ringSpace} / ${Math.sin(
+                        360 / ringHeadingEl.children.length / (180 / Math.PI))}) * ${newSize}rem)`);
+            };
+
+            const addRing = () => {
+                setTimeout(async () => {
+                    const showRingGM = await GM.getValue('showRing');
+                    let ringsize = showRingGM;
+                    switch (true) {
+                        case showRingGM === true:
+                            ringsize = 2;
+                            break;
+                        case showRingGM === false:
+                            ringsize = 0;
+                            break;
+                        case showRingGM === undefined:
+                            ringsize = 0;
+                    }
+
+                    const boardViewContainer = document.getElementById('ad-ext-turn').nextElementSibling;
+                    boardViewContainer.classList.add('adp_boardview-container');
+                    const boardViewNumbers = document.createElement('div');
+                    boardViewNumbers.classList.add('adp_boardview-numbers');
+                    boardViewContainer.children[0].appendChild(boardViewNumbers);
+                    boardViewContainer.classList.toggle('adp_showring', ringsize > 0);
+                    boardViewContainer.dataset.ringsize = ringsize;
+
+                    const buttonStack = boardViewContainer.children[0].children[1].children[0];
+                    const imageHolder = boardViewContainer.children[0].children[1].children[1];
+
+                    imageHolder.classList.add('adp_boardview-image');
+
+                    const ringBtn = document.createElement('button');
+                    ringBtn.classList.add('css-qwakwq');
+                    ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
+                    setActiveAttr(ringBtn, ringsize > 0);
+
+                    const ringOptions = {
+                        spacing: 1.4,
+                        text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
+                    };
+
+                    const text = ringOptions.text;
+                    const chars = text.split('');
+                    ringHeadingEl.innerHTML = '';
+                    ringHeadingEl.style.setProperty('--char-count', chars.length);
+
+                    for (let c = 0; c < chars.length; c++) {
+                        ringHeadingEl.innerHTML += `<span aria-hidden="true" class="char" style="--char-index: ${c};">${chars[c]}</span>`;
+                    }
+                    ringHeadingEl.style.setProperty('--character-width', ringOptions.spacing);
+                    ringHeadingEl.style.setProperty('--radius', canTrig ? 'calc((var(--character-width) / sin(var(--inner-angle))) * -1ch' : `calc(
+              (${ringOptions.spacing} / ${Math.sin(360 / ringHeadingEl.children.length / (180 / Math.PI))})
+              * -1ch
+            )`);
+
+                    setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
+
+                    boardViewNumbers.appendChild(ringHeadingEl);
+
+                    ringBtn.addEventListener('click', async (event) => {
+                        ringsize++;
+                        ringsize = ringsize > 9 ? 0 : ringsize;
+                        const isActive = ringsize > 0;
+                        setActiveAttr(ringBtn, isActive);
+                        await GM.setValue('showRing', ringsize);
+                        ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
+                        boardViewContainer.classList.toggle('adp_showring', isActive);
+                        boardViewContainer.dataset.ringsize = ringsize;
+
+                        setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
+
+                    }, false);
+
+                    buttonStack.appendChild(ringBtn);
+
+                }, 100);
+
+            };
+
             if (document.getElementById('ad-ext-turn').nextElementSibling.children[0].children[1].childElementCount === 2) {
                 addRing();
             }
@@ -1124,117 +1321,52 @@
                     }
                 });
             });
+
         }, 0);
+
     };
 
-    const canTrig = CSS.supports('(top: calc(sin(1) * 1px))');
+    const handleTakeoutMessage = () => {
+        if (!modalTakeout) return;
+        const chakraPortal = document.querySelector('.chakra-portal');
+        const takeoutModal = document.createElement('div');
+        takeoutModal.classList.add('adp_hide');
 
-    const setRingSize = (boardViewNumbersEl, ringSpace, ringSize) => {
-        let addVal = 0;
-        switch (ringSize) {
-            case 3:
-                addVal = 0.05;
-                break;
-            case 4:
-                addVal = 0.08;
-                break;
-            case 5:
-                addVal = 0.12;
-                break;
-            case 7:
-                addVal = 0.05;
-                break;
-            case 8:
-                addVal = 0.08;
-                break;
-            case 9:
-                addVal = 0.12;
-                break;
+        if (chakraPortal && !document.querySelector('.chakra-modal')) {
+            takeoutModal.classList.add('chakra-modal');
+            chakraPortal.appendChild(takeoutModal);
         }
 
-        const minSize = Math.min(boardViewNumbersEl.offsetWidth, boardViewNumbersEl.offsetHeight);
-        const newSize = minSize * 3 / 1000 - (minSize / 3500) + addVal;
-        ringHeadingEl.style.setProperty('--font-size', newSize);
-        ``;
-        document.documentElement.style.setProperty('--buffer',
-            canTrig ? `calc((${ringSpace} / sin(${360 / ringHeadingEl.children.length}deg)) * ${newSize}rem)` : `calc((${ringSpace} / ${Math.sin(
-                360 / ringHeadingEl.children.length / (180 / Math.PI))}) * ${newSize}rem)`);
-    };
+        const showTakeoutMessage = (showMessage) => {
+            takeoutModal.classList.toggle('adp_hide', !showMessage);
 
-    const addRing = () => {
-        setTimeout(async () => {
-            const showRingGM = await GM.getValue('showRing');
-            let ringsize = showRingGM;
-            switch (true) {
-                case showRingGM === true:
-                    ringsize = 2;
-                    break;
-                case showRingGM === false:
-                    ringsize = 0;
-                    break;
-                case showRingGM === undefined:
-                    ringsize = 0;
-            }
+            takeoutModal.innerHTML = `
+                    <section class="chakra-modal__content" >
+                        <header class="chakra-modal__header">Takeout! Removing Darts</header>
+                    </section>
+                `;
+        };
 
-            const boardViewContainer = document.getElementById('ad-ext-turn').nextElementSibling;
-            boardViewContainer.classList.add('adp_boardview-container');
-            const boardViewNumbers = document.createElement('div');
-            boardViewNumbers.classList.add('adp_boardview-numbers');
-            boardViewContainer.children[0].appendChild(boardViewNumbers);
-            boardViewContainer.classList.toggle('adp_showring', ringsize > 0);
-            boardViewContainer.dataset.ringsize = ringsize;
+        const boardMenu = document.getElementById('ad-ext-game-settings-extra').previousElementSibling.children[0].lastChild.lastChild;
 
-            const buttonStack = boardViewContainer.children[0].children[1].children[0];
-            const imageHolder = boardViewContainer.children[0].children[1].children[1];
+        const boardStatusContainer = boardMenu.querySelector('a');
 
-            imageHolder.classList.add('adp_boardview-image');
+        const config = {
+            characterData: true,
+            attributes: false,
+            childList: false
+        };
 
-            const ringBtn = document.createElement('button');
-            ringBtn.classList.add('css-qwakwq');
-            ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
-            setActiveAttr(ringBtn, ringsize > 0);
-
-            const ringOptions = {
-                spacing: 1.4,
-                text: '20  1  18  4  13  6  10  15  2  17  3  19  7  16  8  11  14  9  12  5  '
-            };
-
-            const text = ringOptions.text;
-            const chars = text.split('');
-            ringHeadingEl.innerHTML = '';
-            ringHeadingEl.style.setProperty('--char-count', chars.length);
-
-            for (let c = 0; c < chars.length; c++) {
-                ringHeadingEl.innerHTML += `<span aria-hidden="true" class="char" style="--char-index: ${c};">${chars[c]}</span>`;
-            }
-            ringHeadingEl.style.setProperty('--character-width', ringOptions.spacing);
-            ringHeadingEl.style.setProperty('--radius', canTrig ? 'calc((var(--character-width) / sin(var(--inner-angle))) * -1ch' : `calc(
-              (${ringOptions.spacing} / ${Math.sin(360 / ringHeadingEl.children.length / (180 / Math.PI))})
-              * -1ch
-            )`);
-
-            setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
-
-            boardViewNumbers.appendChild(ringHeadingEl);
-
-            ringBtn.addEventListener('click', async (event) => {
-                ringsize++;
-                ringsize = ringsize > 9 ? 0 : ringsize;
-                const isActive = ringsize > 0;
-                setActiveAttr(ringBtn, isActive);
-                await GM.setValue('showRing', ringsize);
-                ringBtn.innerText = `Ring ${ringsize > 0 ? 'ON ' + ringsize : 'OFF'}`;
-                boardViewContainer.classList.toggle('adp_showring', isActive);
-                boardViewContainer.dataset.ringsize = ringsize;
-
-                setRingSize(boardViewNumbers, ringOptions.spacing, ringsize);
-
-            }, false);
-
-            buttonStack.appendChild(ringBtn);
-
-        }, 100);
-
+        observeDOM(boardStatusContainer, config, function(m) {
+            m.forEach((record) => {
+                // 🖐
+                if (record.target.textContent !== '✊') {
+                    showTakeoutMessage(false);
+                } else {
+                    showTakeoutMessage(true);
+                }
+            });
+        });
     };
 
     const readyClasses = {
