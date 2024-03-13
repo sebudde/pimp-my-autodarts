@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.35
+// @version      0.36
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -44,6 +44,7 @@
     // config
     let callerData = {};
     let winnerSoundData = {};
+    let gameSound1;
     let inactiveSmall;
     let showTotalDartsAtLegFinish;
     let showTotalDartsAtLegFinishLarge;
@@ -134,8 +135,13 @@
                 ...gmWinnerSoundData,
                 [data[0]]: {...gmWinnerSoundValue, ...newWinnerSoundValue}
             };
+            await GM.setValue('winnerSoundData', winnerSoundData);
+        } else {
+            const key = data[0];
+            eval(key + ' = value');
+            await GM.setValue([key], value);
         }
-        await GM.setValue('winnerSoundData', winnerSoundData);
+
     };
 
     const callerObj = {
@@ -214,6 +220,7 @@
             padding: 1rem;
             width: 100%;
             max-width: 1366px;
+            padding-bottom: 30px;
         }
         .adp_hide {
             display: none !important;
@@ -679,6 +686,28 @@
                 configContainer.appendChild(winnerSoundContainer);
             }
 
+            gameSound1 = await GM.getValue('gameSound1');
+
+            const gameSoundHeader = document.createElement('h3');
+            gameSoundHeader.classList.add('adp_config-header');
+            gameSoundHeader.innerText = 'Game sounds';
+            configContainer.appendChild(gameSoundHeader);
+
+            const soundContentRow1 = document.createElement('div');
+            soundContentRow1.classList.add('adp_config-row');
+            soundContentRow1.style.gap = '2rem';
+
+            soundContentRow1.innerHTML = `
+            <div class="css-1igwmid" style="width: 70px; margin-right: 2em">
+                <div class="adp_gameSound--label">Busted</div>
+            </div>
+            <div class="css-1igwmid" style="width: 772px;">
+                <input placeholder="busted sound"  class="adp_gameSound css-1ndqqtl" name="gameSound1" value="${gameSound1 || ''}">
+            </div>
+            `;
+
+            configContainer.appendChild(soundContentRow1);
+
             const input = configContainer.querySelectorAll('input');
             [...input].forEach((el) => (el.addEventListener('blur', (e) => {
                 setAdpData(e.target.name, e.target.value);
@@ -1039,9 +1068,11 @@
                     }
                 }
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (turnPoints === 'BUST') {
-                        if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
+                        if (gameSound1.length) {
+                            playSound2(gameSound1);
+                        } else if (callerFolder.length && callerServerUrl.length) playSound2(callerServerUrl + '/' + callerFolder + '/' + '0' + fileExt);
                     } else {
                         if (curThrowPointsName === 'BULL') {
                             if (triplesound === '1') {
