@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.36
+// @version      0.37-test
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -749,7 +749,9 @@
 
             matchVariant = document.getElementById('ad-ext-game-variant').innerText.split(' ')[0];
 
-            handleTakeoutMessage();
+            setTimeout(() => {
+                handleTakeoutMessage();
+            }, 1000);
 
             const isX01 = matchVariant === 'X01';
             const isCricket = matchVariant === 'Cricket';
