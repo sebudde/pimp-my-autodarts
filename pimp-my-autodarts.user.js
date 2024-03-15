@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.37-test
+// @version      0.37-D1CO
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -749,18 +749,21 @@
 
             matchVariant = document.getElementById('ad-ext-game-variant').innerText.split(' ')[0];
 
-            setTimeout(() => {
-                handleTakeoutMessage();
-            }, 1000);
+            console.log('matchVariant',matchVariant);
 
             const isX01 = matchVariant === 'X01';
             const isCricket = matchVariant === 'Cricket';
             isValidMatchVariant = isX01 || isCricket;
+
+            console.log('isValidMatchVariant',isValidMatchVariant);
             // isValidMatchVariant = isX01;
 
             if (!isValidMatchVariant) return;
 
+            handleTakeoutMessage();
+
             matchMenuContainer = document.getElementById('ad-ext-game-settings-extra');
+            console.log('matchMenuContainer', matchMenuContainer);
             if (matchMenuContainer) matchMenuContainer.style.display = hideHeaderGM ? 'none' : 'flex';
 
             playerContainerEl = document.getElementById('ad-ext-player-display');
@@ -1019,7 +1022,8 @@
                 const callerFolder = callerData[callerActive]?.folder || '';
                 const callerServerUrl = callerData[callerActive]?.server || '';
                 const fileExt = callerData[callerActive]?.fileExt || '.mp3';
-
+                console.log('callerFolder',callerFolder);
+                console.log('callerServerUrl',callerServerUrl);
                 // const turnPointsEl = turnContainerEl.children[0];
                 const turnPoints = document.querySelector('.ad-ext-turn-points').innerText.trim();
                 // TODO: Timo - class only for thrown darts
@@ -1360,46 +1364,54 @@
     };
 
     const handleTakeoutMessage = () => {
+        console.log('handleTakeoutMessage');
         if (!modalTakeout) return;
-        const chakraPortal = document.querySelector('.chakra-portal');
-        const takeoutModal = document.createElement('div');
-        takeoutModal.classList.add('adp_hide');
+        setTimeout(() => {
+            console.log('handleTakeoutMessage setTimeout');
+            const chakraPortal = document.querySelector('.chakra-portal');
+            const takeoutModal = document.createElement('div');
+            takeoutModal.classList.add('adp_hide');
 
-        if (chakraPortal && !document.querySelector('.chakra-modal')) {
-            takeoutModal.classList.add('chakra-modal');
-            chakraPortal.appendChild(takeoutModal);
-        }
+            if (chakraPortal && !document.querySelector('.chakra-modal')) {
+                takeoutModal.classList.add('chakra-modal');
+                chakraPortal.appendChild(takeoutModal);
+            }
 
-        const showTakeoutMessage = (showMessage) => {
-            takeoutModal.classList.toggle('adp_hide', !showMessage);
+            const showTakeoutMessage = (showMessage) => {
+                console.log('showTakeoutMessage');
+                takeoutModal.classList.toggle('adp_hide', !showMessage);
 
-            takeoutModal.innerHTML = `
+                takeoutModal.innerHTML = `
                     <section class="chakra-modal__content" >
                         <header class="chakra-modal__header">Takeout! Removing Darts</header>
                     </section>
                 `;
-        };
+            };
 
-        const boardMenu = document.getElementById('ad-ext-game-settings-extra').previousElementSibling.children[0].lastChild.lastChild;
+            const boardMenu = document.getElementById('ad-ext-game-settings-extra').previousElementSibling.children[0].lastChild.lastChild;
 
-        const boardStatusContainer = boardMenu.querySelector('a');
+            console.log('boardMenu',boardMenu);
+            const boardStatusContainer = boardMenu.querySelector('a');
 
-        const config = {
-            characterData: true,
-            attributes: false,
-            childList: false
-        };
+            const config = {
+                characterData: true,
+                attributes: false,
+                childList: false
+            };
 
-        observeDOM(boardStatusContainer, config, function(m) {
-            m.forEach((record) => {
-                // 🖐
-                if (record.target.textContent !== '✊') {
-                    showTakeoutMessage(false);
-                } else {
-                    showTakeoutMessage(true);
-                }
+            observeDOM(boardStatusContainer, config, function(m) {
+                m.forEach((record) => {
+                    // 🖐
+                    if (record.target.textContent !== '✊') {
+                        console.log('icon nicht da');
+                        showTakeoutMessage(false);
+                    } else {
+                        console.log('icon da');
+                        showTakeoutMessage(true);
+                    }
+                });
             });
-        });
+        }, 1000);
     };
 
     const readyClasses = {
