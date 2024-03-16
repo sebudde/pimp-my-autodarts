@@ -125,7 +125,7 @@
                 ...gmCallerData,
                 [data[0]]: {...gmCallerValue, ...newCallerValue}
             };
-            await GM.setValue('callerData', callerData);
+            await GM.setValue('callerData:', callerData);
 
         } else if (data[0].startsWith('winnerSound')) {
             const gmWinnerSoundData = await GM.getValue('winnerSoundData') || {};
