@@ -2,7 +2,7 @@
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
 // @name         Pimp My Autodarts (caller & other stuff)
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.39
+// @version      0.40
 // @description  Userscript for Autodarts
 // @author       sebudde
 // @match        https://play.autodarts.io/*
@@ -33,6 +33,7 @@
     let matchHistoryBtnClicked = false;
 
     let activePlayerCardPointsEl;
+    let editPlayerThrowActive;
     let inactivePlayerCardPointsElArr = [];
     let winnerPlayerCard;
 
@@ -1111,7 +1112,7 @@
                         }
                         //////////////// play Sound ////////////////////
                         if (matchVariant === 'X01' || (matchVariant === 'Cricket' && turnPoints > 0)) {
-                            if (throwPointsArr.length === 3 && callerFolder.length) {
+                            if (throwPointsArr.length === 3 && callerFolder.length && !editPlayerThrowActive) {
                                 playPointsSound();
                             }
                         }
@@ -1156,12 +1157,16 @@
             };
 
             const onCounterChange = async () => {
-
+                editPlayerThrowActive = document.querySelector('.ad-ext-turn-throw.css-6pn4tf');
                 activePlayerCardPointsEl = document.querySelector('.ad-ext-player-active .ad-ext-player-score');
                 inactivePlayerCardPointsElArr = [...document.querySelectorAll('.ad-ext-player-inactive .ad-ext-player-score')];
                 winnerPlayerCard = document.querySelector('.ad-ext-player-winner');
 
-                caller();
+                if (!editPlayerThrowActive) { // caller not in throw-edit-mode
+                    setTimeout( () => { // delay to update score in DOM after edit
+                        caller();
+                    }, 500);
+                }
 
                 inactiveSmall = (await GM.getValue('inactiveSmall')) ?? true;
 
