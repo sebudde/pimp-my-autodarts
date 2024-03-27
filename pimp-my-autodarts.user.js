@@ -790,8 +790,7 @@
             const cricketContainer = document.getElementById('ad-ext-turn').nextElementSibling;
 
             const setCricketClosedPoints = () => {
-                const cricketPointTable = cricketContainer.children[2];
-
+                const cricketPointTable = cricketContainer.children[0].children[1];
                 if (!cricketPointTable?.children) return;
                 cricketClosedPoints = [];
 
@@ -799,26 +798,19 @@
                     if (i % playerCount === 0) {
                         const rowCount = (i / playerCount) + 1;
                         const rowPoints = (rowCount === 7 ? 25 : 21 - rowCount).toString(); // Bulls fix
-                        if (el.querySelector('.css-cogxfh')) {
+                        if (el.children.length === 3) {
                             cricketClosedPoints.push(rowPoints);
-                        }
-
-                        if (!el.children.length) {
-                            const numberHolder = document.createElement('p');
-                            numberHolder.classList.add('adp_cricket-rownumber');
-                            numberHolder.innerText = (rowCount === 7 ? 'Bull' : 21 - rowCount);
-                            el.appendChild(numberHolder);
                         }
                     }
                 });
             };
 
             if (matchVariant === 'Cricket') {
-                cricketContainer.style.minHeight = '0';
-                playerContainerEl.style.height = '100%';
-                playerContainerEl.childNodes.forEach((el) => {
-                    el.style.height = '100%';
-                });
+                // cricketContainer.style.minHeight = '0';
+                // playerContainerEl.style.height = '100%';
+                // playerContainerEl.childNodes.forEach((el) => {
+                //     el.style.height = '100%';
+                // });
                 // [...document.querySelectorAll('.ad-ext-player-score')].forEach((el) => {
                 //     el.parentElement.style.height = '100%';
                 //     el.parentElement.style.padding = '6px 0';
@@ -1406,10 +1398,10 @@
     };
 
     const readyClasses = {
-        play: 'css-14trzk1', // lobbies: 'css-1q0rlnk',
+        // play: 'css-14trzk1', // lobbies: 'css-1q0rlnk',
         // table: 'css-p3eaf1', // matches & boards
         x01: 'css-ul22ge',
-        cricket: 'css-103ls90',
+        cricket: 'css-1k7iu8k',
         matchHistory: 'css-5bhccf'
     };
 
@@ -1427,9 +1419,10 @@
                         if (!readyClassesValues.includes(className)) return false;
                         const key = Object.keys(readyClasses).find((key) => readyClasses[key] === className);
                         if (key) {
+                            // console.log('key',key);
                             setTimeout(() => {
                                 onDOMready();
-                                if (key === 'x01' || key === 'cricket') handleMatch();
+                                handleMatch();
                                 return true;
                             }, 0);
                         }
