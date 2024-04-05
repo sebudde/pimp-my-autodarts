@@ -1,9 +1,9 @@
 // ==UserScript==
 // @id           pimp-my-autodarts@https://github.com/sebudde/pimp-my-autodarts
-// @name         Pimp My Autodarts (caller & other stuff)
+// @name         Pimp My Autodarts (caller & other stuff) - deprecated
 // @namespace    https://github.com/sebudde/pimp-my-autodarts
-// @version      0.41
-// @description  Userscript for Autodarts
+// @version      0.5
+// @description  Userscript for Autodarts - deprecated, use Autodarts Tools Extension instead
 // @author       sebudde
 // @match        https://play.autodarts.io/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=autodarts.io

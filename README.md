@@ -1,5 +1,13 @@
 # Pimp My Autodarts
 
+# DEPRECATED - NO LONGER MAINTAINED
+
+## Please use [Autodarts Tools](https://github.com/creazy231/autodarts-tools) instead! ##
+
+### All features of this script are included in Autodarts Tools. ###
+
+---
+
 Userscript to enhance [play.autodarts.io](https://play.autodarts.io).
 
 **No official Autodarts Script!**<br>
